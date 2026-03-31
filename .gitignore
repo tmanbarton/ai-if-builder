@@ -1,3 +1,10 @@
+# .idea files
+.idea/
+
+# Claude
+.claude/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

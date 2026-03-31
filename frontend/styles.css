@@ -1,0 +1,159 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+    background: #f5f5f0;
+    color: #2c2c2c;
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+header {
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: #707070;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+/* Input */
+
+.input-section {
+    margin-bottom: 2rem;
+}
+
+.input-section label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+textarea {
+    width: 100%;
+    height: 200px;
+    padding: 0.75rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #2c2c2c;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #4a7c59;
+}
+
+button#generate-btn {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1.5rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #4a7c59;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button#generate-btn:hover {
+    background: #3d6a4b;
+}
+
+button#generate-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+/* Output */
+
+.panel {
+    margin-bottom: 1.5rem;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Status log */
+
+#status-log {
+    list-style: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    padding: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#status-log li {
+    font-size: 0.8rem;
+    padding: 0.2rem 0;
+    color: #555;
+}
+
+#status-log li::before {
+    content: "› ";
+    color: #4a7c59;
+}
+
+/* File tabs and content */
+
+#file-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 0;
+}
+
+#file-tabs button {
+    padding: 0.4rem 1rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #e8e8e3;
+    color: #555;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+}
+
+#file-tabs button.active {
+    background: #fff;
+    color: #2c2c2c;
+    font-weight: 600;
+    border-color: #ddd;
+}
+
+#file-content {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 0 4px 4px 4px;
+    padding: 1rem;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    min-height: 120px;
+    white-space: pre-wrap;
+}

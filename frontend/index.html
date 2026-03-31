@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Fiction Builder</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Interactive Fiction Builder</h1>
+        <p class="subtitle">Describe your game, and agents will generate the Java source files.</p>
+    </header>
+
+    <main>
+        <section class="input-section">
+            <label for="game-description">Game Description</label>
+            <textarea id="game-description" placeholder="Describe your interactive fiction game here..."></textarea>
+            <button id="generate-btn">Generate</button>
+        </section>
+
+        <section class="output-section">
+            <div id="status-panel" class="panel hidden">
+                <h2>Agent Status</h2>
+                <ul id="status-log"></ul>
+            </div>
+
+            <div id="files-panel" class="panel hidden">
+                <h2>Generated Files</h2>
+                <div id="file-tabs"></div>
+                <pre id="file-content"></pre>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
