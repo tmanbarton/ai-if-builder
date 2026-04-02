@@ -1,29 +1,97 @@
 {
   "locations": [
     {
-      "name": "name",
+      "name": "location1",
       "shortDescription": "short description",
       "longDescription": "long description",
       "visited": false,
+      "isStartingLocation": true,
+      "isUnlockable": false,
+      "isContainer": false,
       "items": [
         {
           "name": "name",
           "shortDescription": "short description",
           "longDescription": "long description",
           "isContainer": false,
-          "isUnlockable": false
+          "isUnlockable": false,
+          "hiddenItemRevealCondition": null
+        },
+        {
+          "name": "name2",
+          "shortDescription": "short description",
+          "longDescription": "long description",
+          "isContainer": false,
+          "isUnlockable": false,
+          "hiddenItemRevealCondition": "user opens the closet door"
+        }
+      ],
+      "sceneryObjects": [
+        {
+          "name": "name",
+          "interactions": [
+            {
+              "interaction": "type",
+              "description": "description"
+            }
+          ]
         }
       ],
       "connections": [
         {
-          "name": "location",
+          "sourceLocation": "location1",
+          "targetLocation": "location2",
           "direction": "north"
+        },
+        {
+          "sourceLocation": "location1",
+          "targetLocation": "location3",
+          "direction": "east"
+        },
+        {
+          "sourceLocation": "location2",
+          "targetLocation": "location1",
+          "direction": "south"
         }
       ]
-    }],
+    }
+  ],
   "puzzles": {
     "description": "Player finds 3 numbers in 3 different locations and uses those numbers to unlock a vault."
   },
-  "customCommands": ["enter"],
-  "overrideCommands": ["look"]
+  "customCommands": [
+    {
+      "command": "write",
+      "description": "Checks if an item can be written on (hard coded list). If it can, either write what the user said to write or describe some vague writing. Example: user input: \"Write on the tablet.\" Game response: \"Scribble scribble. You write on the tablet.\" Another example: User input: \"Write 'hello' on the paper.\" (game state updated to have 'hello' on the paper) Response: \"'hello' is now on the paper\"",
+      "customDefaultBehavior": null
+    }
+  ],
+  "overrideCommands": [
+    {
+      "command": "punch",
+      "description": "When the user punches the punching bag scenery object, this occurs: the punching bag swings out then swings back and knocks the player down. It also pops open and spews foam, along with a note. So these parts of the game state are updated: location description, punching bag scenery object, and location items."
+    }
+  ],
+  "hints": [
+    {
+      "condition": "the player hasn't unlocked the chest yet but they have the key.",
+      "messages": ["Take a look at your inventory. That key is useful for something.", "Check the basement.", "Use the key to unlock the chest in the basement."]
+    }
+  ],
+  "customIntroResponse": {
+    "yesAnswer": "Here we go.",
+    "noAnswer": "A little more instruction.",
+    "customAnswers": [
+      {
+        "input": "easy",
+        "answer": "Easy mode selected."
+      },
+      {
+        "input": "hard",
+        "answer": "Hard mode selected."
+      }
+    ]
+  },
+  "shouldSkipIntro": false,
+  "introMessage": "intro message"
 }
