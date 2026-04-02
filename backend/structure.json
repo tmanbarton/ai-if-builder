@@ -8,6 +8,23 @@
       "isStartingLocation": true,
       "isUnlockable": false,
       "isContainer": false,
+      "connections": [
+        {
+          "sourceLocation": "location1",
+          "targetLocation": "location2",
+          "direction": "north"
+        },
+        {
+          "sourceLocation": "location1",
+          "targetLocation": "location3",
+          "direction": "east"
+        },
+        {
+          "sourceLocation": "location2",
+          "targetLocation": "location1",
+          "direction": "south"
+        }
+      ],
       "items": [
         {
           "name": "name",
@@ -35,23 +52,6 @@
               "description": "description"
             }
           ]
-        }
-      ],
-      "connections": [
-        {
-          "sourceLocation": "location1",
-          "targetLocation": "location2",
-          "direction": "north"
-        },
-        {
-          "sourceLocation": "location1",
-          "targetLocation": "location3",
-          "direction": "east"
-        },
-        {
-          "sourceLocation": "location2",
-          "targetLocation": "location1",
-          "direction": "south"
         }
       ]
     }
