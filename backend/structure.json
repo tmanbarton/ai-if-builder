@@ -27,7 +27,7 @@
       ],
       "items": [
         {
-          "name": "name",
+          "key": "name",
           "shortDescription": "short description",
           "longDescription": "long description",
           "isContainer": false,
@@ -56,9 +56,11 @@
       ]
     }
   ],
-  "puzzles": {
-    "description": "Player finds 3 numbers in 3 different locations and uses those numbers to unlock a vault."
-  },
+  "puzzles": [
+    {
+      "description": "Player finds 3 numbers in 3 different locations and uses those numbers to unlock a vault."
+    }
+  ],
   "customCommands": [
     {
       "command": "write",
