@@ -10,11 +10,11 @@
       "isContainer": false,
       "sceneryObjects": [
         {
-          "name": "name",
+          "key": "name",
           "interactions": [
             {
               "interaction": "type",
-              "description": "description"
+              "response": "response string"
             }
           ]
         }
@@ -83,7 +83,7 @@
       "condition": "the player hasn't unlocked the chest yet but they have the key.",
       "messages": ["Take a look at your inventory. That key is useful for something.", "Check the basement.", "Use the key to unlock the chest in the basement."]
     }
-  ],todo add descriptions for all fields in models. Use Field() like Claude described
+  ],
   "customIntroResponse": {
     "yesAnswer": "Here we go.",
     "noAnswer": "A little more instruction.",
