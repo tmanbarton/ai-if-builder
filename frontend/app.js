@@ -1,4 +1,4 @@
-const descriptionEl = document.getElementById("game-description");
+const gameSpecEl = document.getElementById("game-spec");
 const generateBtn = document.getElementById("generate-btn");
 const statusPanel = document.getElementById("status-panel");
 const statusLog = document.getElementById("status-log");
@@ -9,8 +9,8 @@ const fileContent = document.getElementById("file-content");
 let generatedFiles = {};
 
 generateBtn.addEventListener("click", async () => {
-    const description = descriptionEl.value.trim();
-    if (!description) return;
+    const gameSpec = gameSpecEl.value.trim();
+    if (!gameSpec) return;
 
     // Reset UI
     generatedFiles = {};
@@ -24,10 +24,10 @@ generateBtn.addEventListener("click", async () => {
     addStatus("Sending game description to agents...");
 
     try {
-        const response = await fetch("/api/generate", {
+        const response = await fetch("/api/generate_files", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ description }),
+            body: JSON.stringify({ "game_spec": gameSpec }),
         });
 
         if (!response.ok) {

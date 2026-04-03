@@ -22,7 +22,7 @@ def run_agent(q: queue.Queue, spec: str):
 
     q.put("event: status\ndata: Parsing specs\n\n")
     client = Anthropic()
-    client.messages.create(
+    response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2048,
         system=system_message,
