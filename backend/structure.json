@@ -25,24 +25,6 @@
           "direction": "south"
         }
       ],
-      "items": [
-        {
-          "key": "name",
-          "shortDescription": "short description",
-          "longDescription": "long description",
-          "isContainer": false,
-          "isUnlockable": false,
-          "hiddenItemRevealCondition": null
-        },
-        {
-          "name": "name2",
-          "shortDescription": "short description",
-          "longDescription": "long description",
-          "isContainer": false,
-          "isUnlockable": false,
-          "hiddenItemRevealCondition": "user opens the closet door"
-        }
-      ],
       "sceneryObjects": [
         {
           "name": "name",
@@ -56,6 +38,28 @@
       ]
     }
   ],
+  "items": [
+        {
+          "key": "name",
+          "shortDescription": "short description",
+          "longDescription": "long description",
+          "detailedDescription": "detailed description",
+          "location": "location1",
+          "isContainer": false,
+          "isUnlockable": false,
+          "hiddenItemRevealCondition": null
+        },
+        {
+          "name": "name2",
+          "shortDescription": "short description",
+          "longDescription": "long description",
+          "detailedDescription": "detailed description",
+          "location": "location2",
+          "isContainer": false,
+          "isUnlockable": false,
+          "hiddenItemRevealCondition": "user opens the closet door"
+        }
+      ],
   "puzzles": [
     {
       "description": "Player finds 3 numbers in 3 different locations and uses those numbers to unlock a vault."

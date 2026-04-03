@@ -14,5 +14,4 @@ class Location(BaseModel):
     is_openable: bool | None = False
     is_container: bool | None = False
     connections: list[Connection]
-    items: list[Item]
     scenery_objects: list[SceneryObject]

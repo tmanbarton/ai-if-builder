@@ -2,6 +2,7 @@ import queue
 
 from anthropic import Anthropic
 
+from backend.build_map import build_map
 from backend.models import game_model
 
 system_message = """
@@ -31,5 +32,9 @@ def run_agent(q: queue.Queue, spec: str):
         messages=messages,
         output_format=game_model
     )
+
+    messages.append({"role": "agent", "content": response.content[0].text})
+
+    build_map(response.content[0].text)
 
     q.put(None)

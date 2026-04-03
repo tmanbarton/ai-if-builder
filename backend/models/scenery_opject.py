@@ -1,4 +1,4 @@
 from pydantic import BaseModel
 
 class SceneryObject(BaseModel):
-    key: str
+    key: str | None = None

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
-from backend.location import Location
+from backend.models.item import Item
+from backend.models.location import Location
 from backend.models.custom_command import CustomCommand
 from backend.models.custom_intro_response import CustomIntroResponse
 from backend.models.hint import Hint
@@ -10,6 +11,7 @@ from backend.models.puzzle import Puzzle
 
 class GameModel(BaseModel):
     locations: list[Location]
+    items: list[Item]
     puzzles: list[Puzzle]
     custom_commands: list[CustomCommand]
     overridden_commands: list[OverriddenCommand]
