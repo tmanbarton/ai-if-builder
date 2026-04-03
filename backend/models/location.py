@@ -13,5 +13,4 @@ class Location(BaseModel):
     is_starting_location: bool | None = False
     is_openable: bool | None = False
     is_container: bool | None = False
-    connections: list[Connection]
     scenery_objects: list[SceneryObject]

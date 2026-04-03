@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from backend.models.connection import Connection
 from backend.models.item import Item
 from backend.models.location import Location
 from backend.models.custom_command import CustomCommand
@@ -11,6 +12,7 @@ from backend.models.puzzle import Puzzle
 
 class GameModel(BaseModel):
     locations: list[Location]
+    connections: list[Connection]
     items: list[Item]
     puzzles: list[Puzzle]
     custom_commands: list[CustomCommand]
