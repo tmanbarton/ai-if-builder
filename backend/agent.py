@@ -2,6 +2,8 @@ import queue
 
 from anthropic import Anthropic
 
+from backend.models import game_model
+
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games.
 Your job is to take an input spec that has the user's interactive fiction game design and turn it into the backend of a
@@ -22,11 +24,12 @@ def run_agent(q: queue.Queue, spec: str):
 
     q.put("event: status\ndata: Parsing specs\n\n")
     client = Anthropic()
-    response = client.messages.create(
+    response = client.messages.parse(
         model="claude-sonnet-4-6",
         max_tokens=2048,
         system=system_message,
-        messages=messages
+        messages=messages,
+        output_format=game_model
     )
 
     q.put(None)

@@ -8,7 +8,7 @@ from backend.models.overridden_command import OverriddenCommand
 from backend.models.puzzle import Puzzle
 
 
-class Game(BaseModel):
+class GameModel(BaseModel):
     locations: list[Location]
     puzzles: list[Puzzle]
     custom_commands: list[CustomCommand]
