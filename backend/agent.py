@@ -24,6 +24,8 @@ def generator(q: queue.Queue):
         yield message
 
 def run_agent(q: queue.Queue, spec: str):
+    build_map(q, spec)
+
     messages = [{"role": "user", "content": spec}]
 
     q.put("event: status\ndata: Parsing specs\n\n")
@@ -38,6 +40,5 @@ def run_agent(q: queue.Queue, spec: str):
 
     messages.append({"role": "agent", "content": response.content[0].text})
 
-    build_map(response.parsed_output)
 
     q.put(None)

@@ -40,10 +40,11 @@
       ],
   "items": [
         {
-          "key": "name",
+          "name": "name",
           "shortDescription": "short description",
           "longDescription": "long description",
           "detailedDescription": "detailed description",
+          "aliases": ["same item", "item alias"],
           "location": "location1",
           "isContainer": false,
           "isUnlockable": false,

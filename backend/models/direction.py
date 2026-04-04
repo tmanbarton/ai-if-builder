@@ -1,6 +1,6 @@
-from enum import StrEnum
+from enum import Enum
 
-class Direction(StrEnum):
+class Direction(Enum):
     NORTH = 'north'
     SOUTH = 'south'
     EAST = 'east'
