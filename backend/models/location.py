@@ -2,11 +2,11 @@ from pydantic import BaseModel, Field
 
 from backend.models.connection import Connection
 from backend.models.item import Item
-from backend.models.scenery_opject import SceneryObject
+from backend.models.scenery_object import SceneryObject
 
 
 class Location(BaseModel):
-    name: str = Field(description="The unique name of the location, used as a key.")
+    name: str = Field(description="The unique name of the location, used as a key and as for checking the user's input. Starts with a lowercase and words separated by spaces.")
     short_description: str
     long_description: str
     visited: bool | None = False

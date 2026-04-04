@@ -33,16 +33,30 @@ def build_map(q: queue.Queue, spec: str):
     locations = game_map.locations
     connections = game_map.connections
     items = game_map.items
-    a = 0
 
     for item in items:
-        print(f"""
-        .placeItem(new Item(
-          {item.name},
-          {item.inventory_description},
-          {item.location_description},
-          {item.detailed_description},
-          Set.of(),
-          {item.location}
-        )
-        """)
+        print(f"""\
+.placeItem(new Item(
+  "{item.name}",
+  "{item.inventory_description}",
+  "{item.location_description}",
+  "{item.detailed_description}",
+  Set.of({", ".join(f'"{a}"' for a in item.aliases)}),
+  "{item.location}"
+)\
+""")
+
+    for location in locations:
+        print(f"""\
+.addLocation(new Location(
+  "{location.name}",
+  "{location.long_description}"
+  "{location.short_description}",
+)\
+""")
+        if location.is_starting_location:
+            print(f'.setStartingLocation("{location.name}")')
+
+    for connection in connections:
+        print(f'.connectOneWay("{connection.source_location}", Direction.{connection.direction}, "{connection.target_location}")')
+    a = 0

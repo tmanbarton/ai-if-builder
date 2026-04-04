@@ -2,10 +2,11 @@ from pydantic import BaseModel, Field
 
 
 class Item(BaseModel):
-    name: str = Field(description="The unique name of the item. Used as a key to identify this item.")
+    name: str = Field(description="The unique name of the item. Used as a key to identify this item and for checking the user's input. Starts with a lowercase letter and words separated by spaces.")
     inventory_description: str
     location_description: str
     detailed_description: str
+    aliases: list[str] = Field(default=list(), description="A list of possible names the user could identify this item as. e.g. item: parchment letter, name=letter, aliases=[paper, parchment]. And, if applicable, include plural and singular forms of aliases also.")
     location: str = Field(description="The location name this item is at.")
     is_openable: bool
     is_unlockable: bool
