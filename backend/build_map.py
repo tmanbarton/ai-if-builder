@@ -4,7 +4,7 @@ import queue
 from anthropic import Anthropic
 
 from backend.models.connection import Connection
-from backend.models.game_model import GameModel
+from pathlib import Path
 from backend.models.item import Item
 from backend.models.location import Location
 from backend.models.map import Map
@@ -49,10 +49,11 @@ def build_map(q: queue.Queue, spec: str):
     q.put("event: status\ndata: Map created...\n\n")
 
 
-def write_files(locations: list[Location], connections: list[Connection], items: list[Item]):
-    os.makedirs("generated_files", exist_ok=True)
+def write_files(locations: list[Location], connections: list[Connection], items: list[Item],
+                output_root_dir: str = Path(__file__).parent.parent):
+    os.makedirs(f"{output_root_dir}/generated_files", exist_ok=True)
     # Create constants for items and locations. Use the item/location name in all caps for variable names
-    with open("generated_files/Constants.java", "w") as f:
+    with open(f"{output_root_dir}/Constants.java", "w") as f:
         f.write("///// Item constants /////")
         for item in items:
             screaming_snake_case_name = item.name.upper().replace(" ", "_")
@@ -61,7 +62,7 @@ public static final String {screaming_snake_case_name}_NAME = "{item.name}";
 public static final String {screaming_snake_case_name}_INVENTORY_DESCRIPTION = "{item.inventory_description}";
 public static final String {screaming_snake_case_name}_LOCATION_DESCRIPTION = "{item.location_description}";
 public static final String {screaming_snake_case_name}_DETAILED_DESCRIPTION = "{item.detailed_description}";
-public static final String {screaming_snake_case_name}_ALIASES = Set.of({", ".join(f'"{a}"' for a in item.aliases)});
+public static final Set<String> {screaming_snake_case_name}_ALIASES = Set.of({", ".join(f'"{a}"' for a in item.aliases)});
             """)
 
         f.write("\n///// Location constants /////")
@@ -75,9 +76,10 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
 
     # Create the map items and connections using the Java if-engine library's builder.
     # Write to a .txt file to pass to Claude later so it can add it to the rest of the game
-    with open("generated_files/map.txt", "w") as f:
+    with open(f"{output_root_dir}/map.txt", "w") as f:
 
         f.write("///// Add Items /////")
+        # Parameters: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
         for item in items:
             screaming_snake_case_name = item.name.upper().replace(" ", "_")
             f.write(f"""
@@ -86,10 +88,11 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
   Constants.{screaming_snake_case_name}_INVENTORY_DESCRIPTION,
   Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
   Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_ALIASES,
-  Constants.{item.name.upper().replace(" ", "_")}_NAME))""")
+  Constants.{screaming_snake_case_name}_ALIASES),
+  Constants.{item.location.upper().replace(" ", "_")}_NAME))""")
 
         f.write("\n\n///// Add Locations /////")
+        # Parameters: .addLocation(new Location(name, long description, short description))
         for location in locations:
             screaming_snake_case_name = location.name.upper().replace(" ", "_")
             f.write(f"""
@@ -101,6 +104,7 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
                 f.write(f"\n.setStartingLocation(Constants.{screaming_snake_case_name}_NAME)")
 
         f.write("\n\n///// Connect Locations /////\n")
+        # Parameters: .connectOneWay(source location name, direction, target location name)
         for connection in connections:
             f.write(
                 f'.connectOneWay(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '

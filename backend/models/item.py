@@ -8,7 +8,7 @@ class Item(BaseModel):
     detailed_description: str
     aliases: list[str] = Field(default=list(), description="A list of possible names the user could identify this item as. e.g. item: parchment letter, name=letter, aliases=[paper, parchment]. And, if applicable, include plural and singular forms of aliases also.")
     location: str = Field(description="The location name this item is at.")
-    is_openable: bool
-    is_unlockable: bool
-    is_container: bool
-    hidden_item_reveal_condition: str | None = Field(description="If this item is a hidden item, this field is non-None. If the item is not hidden, this field is set to None. This is the description of what causes the hidden item to be revealed. Examples: When the user unlocks and opens the chest. When the user looks under the table the item becomse visible")
+    is_openable: bool = False
+    is_unlockable: bool = False
+    is_container: bool = False
+    hidden_item_reveal_condition: str | None = Field(default=None, description="If this item is a hidden item, this field is non-None. If the item is not hidden, this field is set to None. This is the description of what causes the hidden item to be revealed. Examples: When the user unlocks and opens the chest. When the user looks under the table the item becomse visible")
