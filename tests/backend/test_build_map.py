@@ -86,3 +86,134 @@ def test_connect_locations(tmp_path):
 
     expected = ".connectOneWay(Constants.DARK_CAVE_NAME, Direction.NORTH, Constants.HALL_OF_THE_MOUNTAIN_KING_NAME)"
     assert expected in content
+
+
+def test_empty_aliases(tmp_path):
+    item = Item(name="torch",
+                inventory_description="torch inventory description",
+                location_description="torch location description",
+                detailed_description="torch detailed description",
+                aliases=[],
+                location="dark cave")
+    write_files([], [], [item], tmp_path.as_posix())
+
+    content = (tmp_path / "Constants.java").read_text()
+    assert 'TORCH_ALIASES = Set.of();' in content
+
+
+def test_starting_location_sets_starting(tmp_path):
+    location = Location(
+        name="entrance hall",
+        short_description="entrance hall short description",
+        long_description="entrance hall long description",
+        is_starting_location=True,
+    )
+    write_files([location], [], [], tmp_path.as_posix())
+
+    content = (tmp_path / "map.txt").read_text()
+    assert ".setStartingLocation(Constants.ENTRANCE_HALL_NAME)" in content
+
+
+def test_non_starting_location_no_starting_set(tmp_path):
+    write_files([TEST_LOCATION], [], [], tmp_path.as_posix())
+
+    content = (tmp_path / "map.txt").read_text()
+    assert ".setStartingLocation" not in content
+
+
+def test_multi_word_name_screaming_snake_case(tmp_path):
+    item = Item(name="rusty old key",
+                inventory_description="rusty old key inventory description",
+                location_description="rusty old key location description",
+                detailed_description="rusty old key detailed description",
+                aliases=[],
+                location="dark cave")
+    write_files([], [], [item], tmp_path.as_posix())
+
+    content = (tmp_path / "Constants.java").read_text()
+    assert 'RUSTY_OLD_KEY_NAME = "rusty old key";' in content
+
+
+def test_full_map(tmp_path):
+    entrance = Location(
+        name="entrance",
+        short_description="entrance short description",
+        long_description="entrance long description",
+        is_starting_location=True,
+    )
+    cellar = Location(
+        name="wine cellar",
+        short_description="wine cellar short description",
+        long_description="wine cellar long description",
+    )
+    lantern = Item(name="lantern",
+                   inventory_description="lantern inventory description",
+                   location_description="lantern location description",
+                   detailed_description="lantern detailed description",
+                   aliases=["lamp", "light"],
+                   location="entrance")
+    connection = Connection(
+        source_location="entrance",
+        target_location="wine cellar",
+        direction="DOWN",
+    )
+
+    write_files([entrance, cellar], [connection], [lantern], tmp_path.as_posix())
+
+    # Verify Constants.java
+    constants = (tmp_path / "Constants.java").read_text()
+
+    # Section headers
+    assert "///// Item constants /////" in constants
+    assert "///// Location constants /////" in constants
+
+    # Lantern item constants
+    assert 'LANTERN_NAME = "lantern";' in constants
+    assert 'LANTERN_INVENTORY_DESCRIPTION = "lantern inventory description";' in constants
+    assert 'LANTERN_LOCATION_DESCRIPTION = "lantern location description";' in constants
+    assert 'LANTERN_DETAILED_DESCRIPTION = "lantern detailed description";' in constants
+    assert 'LANTERN_ALIASES = Set.of("lamp", "light");' in constants
+
+    # Entrance location constants
+    assert 'ENTRANCE_NAME = "entrance";' in constants
+    assert 'ENTRANCE_SHORT_DESCRIPTION = "entrance short description";' in constants
+    assert 'ENTRANCE_LONG_DESCRIPTION = "entrance long description";' in constants
+
+    # Wine cellar location constants
+    assert 'WINE_CELLAR_NAME = "wine cellar";' in constants
+    assert 'WINE_CELLAR_SHORT_DESCRIPTION = "wine cellar short description";' in constants
+    assert 'WINE_CELLAR_LONG_DESCRIPTION = "wine cellar long description";' in constants
+
+    # Verify map.txt
+    map_txt = (tmp_path / "map.txt").read_text()
+
+    # Section headers
+    assert "///// Add Items /////" in map_txt
+    assert "///// Add Locations /////" in map_txt
+    assert "///// Connect Locations /////" in map_txt
+
+    # Lantern placement
+    assert """.placeItem(new Item(
+  Constants.LANTERN_NAME,
+  Constants.LANTERN_INVENTORY_DESCRIPTION,
+  Constants.LANTERN_LOCATION_DESCRIPTION,
+  Constants.LANTERN_DETAILED_DESCRIPTION,
+  Constants.LANTERN_ALIASES),
+  Constants.ENTRANCE_NAME))""" in map_txt
+
+    # Entrance location added with starting location
+    assert """.addLocation(new Location(
+  Constants.ENTRANCE_NAME,
+  Constants.ENTRANCE_LONG_DESCRIPTION,
+  Constants.ENTRANCE_SHORT_DESCRIPTION))""" in map_txt
+    assert ".setStartingLocation(Constants.ENTRANCE_NAME)" in map_txt
+
+    # Wine cellar location added without starting location
+    assert """.addLocation(new Location(
+  Constants.WINE_CELLAR_NAME,
+  Constants.WINE_CELLAR_LONG_DESCRIPTION,
+  Constants.WINE_CELLAR_SHORT_DESCRIPTION))""" in map_txt
+    assert map_txt.count(".setStartingLocation") == 1
+
+    # Connection
+    assert ".connectOneWay(Constants.ENTRANCE_NAME, Direction.DOWN, Constants.WINE_CELLAR_NAME)" in map_txt
