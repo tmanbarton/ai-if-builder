@@ -40,6 +40,11 @@ def build_map(q: queue.Queue, spec: str):
         messages=messages,
         output_format=Map
     )
+    messages.append({
+        "role": "assistant",
+        "content": response.content
+    })
+
     game_map: Map = response.parsed_output
 
     locations = game_map.locations
@@ -53,7 +58,7 @@ def write_files(locations: list[Location], connections: list[Connection], items:
                 output_root_dir: str = Path(__file__).parent.parent):
     os.makedirs(f"{output_root_dir}/generated_files", exist_ok=True)
     # Create constants for items and locations. Use the item/location name in all caps for variable names
-    with open(f"{output_root_dir}/Constants.java", "w") as f:
+    with open(f"{output_root_dir}/generated_files/Constants.java", "w") as f:
         f.write("///// Item constants /////")
         for item in items:
             screaming_snake_case_name = item.name.upper().replace(" ", "_")
@@ -76,7 +81,7 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
 
     # Create the map items and connections using the Java if-engine library's builder.
     # Write to a .txt file to pass to Claude later so it can add it to the rest of the game
-    with open(f"{output_root_dir}/map.txt", "w") as f:
+    with open(f"{output_root_dir}/generated_files/map.txt", "w") as f:
 
         f.write("///// Add Items /////")
         # Parameters: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)

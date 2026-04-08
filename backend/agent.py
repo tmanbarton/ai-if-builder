@@ -7,13 +7,11 @@ from backend.models import game_model
 from backend.models.game_model import GameModel
 
 system_message = """
-You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games.
-Your job is to take an input spec that has the user's interactive fiction game design and turn it into the backend of a
-fully playable game using the if-engine Java library. The spec document will have the map, the items, custom commands,
-default commands to override, puzzles, and more. You will first parse the document into a JSON object representing the
+You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
+Your job is to take an input spec that has the user's interactive fiction game design and turn it into the backend of a 
+fully playable game using the if-engine Java library. The spec document will have the map, the items (ignore these, they're already processed), 
+custom commands, default commands to override, puzzles, and more. You will first parse the document into a JSON object representing the 
 various parts of the game, then pass it on to agents to handle creating the Java files.
-**IMPORTANT** Do NOT populate descriptions. The interactive community is super touchy on the idea of AI-generated content.
-Instead, insert placeholder text so the user can fill the descriptions themselves. (e.g. "Dungeon long description", "Sword detailed description"))
 """
 
 def generator(q: queue.Queue):
@@ -24,6 +22,7 @@ def generator(q: queue.Queue):
         yield message
 
 def run_agent(q: queue.Queue, spec: str):
+    # First call Claude API to extract map and create it deterministically. Start agentic loop after.
     build_map(q, spec)
 
     # messages = [{"role": "user", "content": spec}]
