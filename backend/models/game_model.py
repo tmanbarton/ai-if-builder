@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from backend.models.custom_command import CustomCommand
+from backend.models.custom_commands import CustomCommands
 from backend.models.custom_intro_response import CustomIntroResponse
 from backend.models.hint import Hint
 from backend.models.map import Map
@@ -10,7 +10,7 @@ from backend.models.puzzle import Puzzle
 class GameModel(BaseModel):
     map: Map
     puzzles: list[Puzzle]
-    custom_commands: list[CustomCommand]
+    custom_commands: CustomCommands
     hints: list[Hint]
     custom_intro_response: CustomIntroResponse
     should_skip_intro: bool = Field(description="Whether or not the game should skip the intro message and go straight into the game.")

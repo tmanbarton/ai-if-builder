@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 
-
 class CustomCommand(BaseModel):
     command: str = Field(description="the name of the command to execute. example: 'stab'")
     description: str = Field(description="the description of what the command does and how it works. example: \"'stab' can be used with any item, but only specific items do something (e.g. sword). If the user specifies an item to stab that isn't one of the objects that do something, respond with a generic 'you stab the __. It doesn't do anything.' If the user doens't specify anything to stab, respond with 'what do you want to stab?' If the user doesn't specify something to stab with, assume it's a sword.\"")

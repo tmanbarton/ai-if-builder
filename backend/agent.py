@@ -1,10 +1,6 @@
 import queue
 
-from anthropic import Anthropic
-
 from backend.build_map import build_map
-from backend.models import game_model
-from backend.models.game_model import GameModel
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
