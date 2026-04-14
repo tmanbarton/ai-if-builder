@@ -1,5 +1,4 @@
-# Files generated during game creation
-generated_files/
+*.db
 
 # .idea files
 .idea/

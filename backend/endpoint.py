@@ -8,8 +8,10 @@ from pydantic import BaseModel
 from queue import Queue
 
 from backend.agent import run_agent, generator
+from backend.database import init_db
 
 app = FastAPI()
+init_db()
 
 class Request(BaseModel):
     game_spec: str
