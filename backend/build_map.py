@@ -23,7 +23,8 @@ Note: DO NOT try to fill in the descriptions with actual text, use placeholder t
 
 def build_map(q: queue.Queue, spec: str):
     """
-    Sends the spec input to Claude and parses the JSON response representing the map to create the game map code.
+    Sends the spec input to Claude for it to extract the locations and items and parses the JSON response representing
+    the map to create the game map code.
     This includes the locations and their connections, and the items. Those are the only aspects that can
     be created deterministically from the JSON.
     :param q: Queue for sending SSE events to the front end. Automatically sends the message when an element is added

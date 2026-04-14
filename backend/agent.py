@@ -1,6 +1,7 @@
 import queue
 
 from backend.build_map import build_map
+from backend.create_intro import create_intro
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -20,6 +21,7 @@ def generator(q: queue.Queue):
 def run_agent(q: queue.Queue, spec: str):
     # First call Claude API to extract map and create it deterministically. Start agentic loop after.
     build_map(q, spec)
+    create_intro(q, spec)
 
     # messages = [{"role": "user", "content": spec}]
     #

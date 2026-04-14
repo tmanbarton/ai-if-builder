@@ -3,7 +3,8 @@
 
 # Claude
 .claude/
-
+my_plan.md
+progress.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
