@@ -1,3 +1,6 @@
+# Files generated during game creation
+generated_files/
+
 # .idea files
 .idea/
 

@@ -2,7 +2,19 @@ import queue
 
 from anthropic import Anthropic
 
-system_message = 'todo'
+from backend.models.custom_intro_answer import CustomIntroAnswer
+from backend.models.custom_intro_response import CustomIntroResponse
+from backend.models.intro import Intro
+
+system_message = '''
+You're only job in life is to extract information from a user-provided spec that defines an interactive fiction.
+You will extract information about the introduction. There may or may not be anything specified, but if there is, there are several things that may be specified:
+The answer to a yes/no intro question, the game introduction message, completely custom intro info (non-yes/no answer options or custom behavior on
+answering the intro question).
+If info on the intro is present, there won't be any particular format it will be presented in. You will have to use your best judgement to determine 
+what is intro information and if it's present at all.
+Note: DO NOT try to fill in the response with actual text, use placeholder text like "yes response" or "game intro". The user will complete the full responses themselves.
+'''
 
 def create_intro(q: queue.Queue, spec: str):
     """
@@ -18,8 +30,24 @@ def create_intro(q: queue.Queue, spec: str):
 
     messages = [{'role': 'user', 'content': spec}]
     client = Anthropic()
-    response = client.messages
+    response = client.messages.parse(
+        model="claude-sonnet-4-6",
+        max_tokens=16000,
+        system=system_message,
+        messages=messages,
+        output_format=Intro
+    )
+
+    intro: Intro = response.parsed_output
+    game_intro: str = intro.game_intro
+    should_skip_intro: bool = intro.should_skip_intro
+    intro_response: CustomIntroResponse = intro.intro_response
+    intro_answer: list[CustomIntroAnswer] = intro.intro_answer
+
+    # todo actually create the stuff
+
+    q.put('event: status\ndata: Intro created.\n\n')
 
 # skip intro
 # with intro responses - yes no
-# with intro message
+# with game intro

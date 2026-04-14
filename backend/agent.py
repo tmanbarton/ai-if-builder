@@ -39,3 +39,7 @@ def run_agent(q: queue.Queue, spec: str):
 
 
     q.put(None)
+
+    def cleanup():
+        # todo clean up files that were generated once they are sent to the frontend
+        return None

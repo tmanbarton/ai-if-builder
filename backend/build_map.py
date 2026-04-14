@@ -41,10 +41,6 @@ def build_map(q: queue.Queue, spec: str):
         messages=messages,
         output_format=Map
     )
-    messages.append({
-        "role": "assistant",
-        "content": response.content
-    })
 
     game_map: Map = response.parsed_output
 
@@ -52,7 +48,7 @@ def build_map(q: queue.Queue, spec: str):
     connections = game_map.connections
     items = game_map.items
     write_files(locations, connections, items)
-    q.put("event: status\ndata: Map created...\n\n")
+    q.put("event: status\ndata: Map created.\n\n")
 
 
 def write_files(locations: list[Location], connections: list[Connection], items: list[Item],
