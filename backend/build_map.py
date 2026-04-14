@@ -1,8 +1,11 @@
 import os
 import queue
+import uuid
+from io import StringIO
 
 from anthropic import Anthropic
 
+from backend.database import insert_file
 from backend.models.connection import Connection
 from pathlib import Path
 from backend.models.item import Item
@@ -44,70 +47,78 @@ def build_map(q: queue.Queue, spec: str):
 
     game_map: Map = response.parsed_output
 
-    locations = game_map.locations
-    connections = game_map.connections
-    items = game_map.items
-    write_files(locations, connections, items)
+    locations: list[Location] = game_map.locations
+    connections: list[Connection] = game_map.connections
+    items: list[Item] = game_map.items
+    session_id: str = write_files(locations, connections, items)
     q.put("event: status\ndata: Map created.\n\n")
+    return session_id
 
 
 def write_files(locations: list[Location], connections: list[Connection], items: list[Item],
                 output_root_dir: str = Path(__file__).parent.parent):
     os.makedirs(f"{output_root_dir}/generated_files", exist_ok=True)
+    session_id: str = str(uuid.uuid4())
+
     # Create constants for items and locations. Use the item/location name in all caps for variable names
-    with open(f"{output_root_dir}/generated_files/Constants.java", "w") as f:
-        f.write("///// Item constants /////")
-        for item in items:
-            screaming_snake_case_name = item.name.upper().replace(" ", "_")
-            f.write(f"""
+    constants_buf: StringIO = StringIO()
+    constants_buf.write("///// Item constants /////")
+    for item in items:
+        screaming_snake_case_name = item.name.upper().replace(" ", "_")
+        constants_buf.write(f"""
 public static final String {screaming_snake_case_name}_NAME = "{item.name}";
 public static final String {screaming_snake_case_name}_INVENTORY_DESCRIPTION = "{item.inventory_description}";
 public static final String {screaming_snake_case_name}_LOCATION_DESCRIPTION = "{item.location_description}";
 public static final String {screaming_snake_case_name}_DETAILED_DESCRIPTION = "{item.detailed_description}";
 public static final Set<String> {screaming_snake_case_name}_ALIASES = Set.of({", ".join(f'"{a}"' for a in item.aliases)});
-            """)
+        """)
 
-        f.write("\n///// Location constants /////")
-        for location in locations:
-            screaming_snake_case_name = location.name.upper().replace(" ", "_")
-            f.write(f"""
+    constants_buf.write("\n///// Location constants /////")
+    for location in locations:
+        screaming_snake_case_name: str = location.name.upper().replace(" ", "_")
+        constants_buf.write(f"""
 public static final String {screaming_snake_case_name}_NAME = "{location.name}";
 public static final String {screaming_snake_case_name}_SHORT_DESCRIPTION = "{location.short_description}";
 public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{location.long_description}";
-            """)
+        """)
+
+    insert_file(session_id, 'Constants.java', constants_buf.getvalue())
 
     # Create the map items and connections using the Java if-engine library's builder.
     # Write to a .txt file to pass to Claude later so it can add it to the rest of the game
-    with open(f"{output_root_dir}/generated_files/map.txt", "w") as f:
-
-        f.write("///// Add Items /////")
-        # Parameters: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
-        for item in items:
-            screaming_snake_case_name = item.name.upper().replace(" ", "_")
-            f.write(f"""
+    map_buf: StringIO = StringIO()
+    map_buf.write("///// Add Items /////")
+    # Format: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
+    for item in items:
+        screaming_snake_case_name: str = item.name.upper().replace(" ", "_")
+        map_buf.write(f"""
 .placeItem(new Item(
-  Constants.{screaming_snake_case_name}_NAME,
-  Constants.{screaming_snake_case_name}_INVENTORY_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_ALIASES),
-  Constants.{item.location.upper().replace(" ", "_")}_NAME))""")
+Constants.{screaming_snake_case_name}_NAME,
+Constants.{screaming_snake_case_name}_INVENTORY_DESCRIPTION,
+Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
+Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
+Constants.{screaming_snake_case_name}_ALIASES),
+Constants.{item.location.upper().replace(" ", "_")}_NAME))""")
 
-        f.write("\n\n///// Add Locations /////")
-        # Parameters: .addLocation(new Location(name, long description, short description))
-        for location in locations:
-            screaming_snake_case_name = location.name.upper().replace(" ", "_")
-            f.write(f"""
+    map_buf.write("\n\n///// Add Locations /////")
+    # Format: .addLocation(new Location(name, long description, short description))
+    for location in locations:
+        screaming_snake_case_name: str = location.name.upper().replace(" ", "_")
+        map_buf.write(f"""
 .addLocation(new Location(
-  Constants.{screaming_snake_case_name}_NAME,
-  Constants.{screaming_snake_case_name}_LONG_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_SHORT_DESCRIPTION))""")
-            if location.is_starting_location:
-                f.write(f"\n.setStartingLocation(Constants.{screaming_snake_case_name}_NAME)")
+Constants.{screaming_snake_case_name}_NAME,
+Constants.{screaming_snake_case_name}_LONG_DESCRIPTION,
+Constants.{screaming_snake_case_name}_SHORT_DESCRIPTION))""")
+        if location.is_starting_location:
+            map_buf.write(f"\n.setStartingLocation(Constants.{screaming_snake_case_name}_NAME)")
 
-        f.write("\n\n///// Connect Locations /////\n")
-        # Parameters: .connectOneWay(source location name, direction, target location name)
-        for connection in connections:
-            f.write(
-                f'.connectOneWay(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '
-                f'Constants.{connection.target_location.upper().replace(" ", "_")}_NAME)\n')
+    map_buf.write("\n\n///// Connect Locations /////\n")
+    # Format: .connectOneWay(source location name, direction, target location name)
+    for connection in connections:
+        map_buf.write(
+            f'.connectOneWay(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '
+            f'Constants.{connection.target_location.upper().replace(" ", "_")}_NAME)\n')
+
+    insert_file(session_id, 'map.txt', map_buf.getvalue())
+    
+    return session_id
