@@ -1,4 +1,6 @@
 import queue
+import uuid
+from io import StringIO
 
 from anthropic import Anthropic
 
@@ -44,9 +46,27 @@ def create_intro(q: queue.Queue, spec: str):
     intro_response: CustomIntroResponse = intro.intro_response
     intro_answer: list[CustomIntroAnswer] = intro.intro_answer
 
-    # todo actually create the stuff
+    write_files(should_skip_intro, game_intro, intro_response, intro_answer)
+    # todo what to do for when intro answer is not None? Need to call Claude and have it reference the docs.
 
     q.put('event: status\ndata: Intro created.\n\n')
+
+def write_files(should_skip_intro: bool, game_intro: str, intro_response: CustomIntroResponse, intro_answer: list[CustomIntroAnswer]):
+    session_id: str = str(uuid.uuid4())
+
+    constants_buf: StringIO = StringIO()
+    if should_skip_intro:
+        constants_buf.write('.skipIntro()')
+
+    if game_intro is not None:
+        constants_buf.write(f'.gameIntro({game_intro})')
+
+    if intro_response.yes_answer is not None and intro_response.no_answer is not None:
+        constants_buf.write(f'.withIntroResponse({intro_response.yes_answer}, {intro_response.no_answer})')
+
+    # .skipIntro()
+    # .withIntroResponse(yesAnswer, noAnswer)
+    # .withGameIntro(introMessage)
 
 # skip intro
 # with intro responses - yes no

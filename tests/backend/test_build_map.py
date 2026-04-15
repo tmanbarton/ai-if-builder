@@ -1,4 +1,7 @@
+import pytest
+
 from backend.build_map import write_files
+from backend.database import init_db, fetch_file
 from backend.models.connection import Connection
 from backend.models.item import Item
 from backend.models.location import Location
@@ -15,40 +18,46 @@ TEST_ITEM = Item(name="key",
                  aliases=["key ring"],
                  location="dark cave")
 
-def test_single_location_constants(tmp_path):
+@pytest.fixture
+def test_db(tmp_path):
+    db_path = str(tmp_path / "test.db")
+    init_db(db_path)
+    return db_path
 
-    write_files([TEST_LOCATION], [], [], tmp_path.as_posix())
+def test_single_location_constants(test_db):
 
-    content = (tmp_path / "Constants.java").read_text()
+    session_id: str = write_files([TEST_LOCATION], [], [], test_db)
+
+    content: str = fetch_file(session_id, "Constants.java", test_db)[0]
     assert 'public static final String DARK_CAVE_NAME = "dark cave";' in content
     assert 'public static final String DARK_CAVE_SHORT_DESCRIPTION = "dark cave short description";' in content
     assert 'public static final String DARK_CAVE_LONG_DESCRIPTION = "dark cave long description";' in content
 
-def test_single_item_constants(tmp_path):
-    write_files([], [], [TEST_ITEM], tmp_path.as_posix())
+def test_single_item_constants(test_db):
+    session_id: str = write_files([], [], [TEST_ITEM], test_db)
 
-    content = (tmp_path / "Constants.java").read_text()
+    content: str = fetch_file(session_id, "Constants.java", test_db)[0]
     assert 'public static final String KEY_NAME = "key";' in content
     assert 'public static final String KEY_INVENTORY_DESCRIPTION = "key inventory description";' in content
     assert 'public static final String KEY_LOCATION_DESCRIPTION = "key location description";' in content
     assert 'public static final String KEY_DETAILED_DESCRIPTION = "key detailed description";' in content
     assert 'public static final Set<String> KEY_ALIASES = Set.of("key ring");' in content
 
-def test_multiple_aliases_item_constants(tmp_path):
+def test_multiple_aliases_item_constants(test_db):
     item = Item(name="rope",
                 inventory_description="rope inventory description",
                 location_description="rope location description",
                 detailed_description="rope detailed description",
                 aliases=["rope", "cord", "string"],
                 location="barn")
-    write_files([], [], [item], tmp_path.as_posix())
+    session_id: str = write_files([], [], [item], test_db)
 
-    content = (tmp_path / "Constants.java").read_text()
+    content: str = fetch_file(session_id, "Constants.java", test_db)[0]
     assert 'public static final Set<String> ROPE_ALIASES = Set.of("rope", "cord", "string");' in content
 
-def test_add_location(tmp_path):
-    write_files([TEST_LOCATION], [], [], tmp_path.as_posix())
-    content = (tmp_path / "map.txt").read_text()
+def test_add_location(test_db):
+    session_id: str = write_files([TEST_LOCATION], [], [], test_db)
+    content: str = fetch_file(session_id, "map.txt", test_db)[0]
     expected = """
 .addLocation(new Location(
   Constants.DARK_CAVE_NAME,
@@ -57,9 +66,9 @@ def test_add_location(tmp_path):
 
     assert expected in content
 
-def test_add_item(tmp_path):
-    write_files([], [], [TEST_ITEM], tmp_path.as_posix())
-    content = (tmp_path / "map.txt").read_text()
+def test_add_item(test_db):
+    session_id: str = write_files([], [], [TEST_ITEM], test_db)
+    content: str = fetch_file(session_id, "map.txt", test_db)[0]
     expected = """
 .placeItem(new Item(
   Constants.KEY_NAME,
@@ -71,7 +80,7 @@ def test_add_item(tmp_path):
 
     assert expected in content
 
-def test_connect_locations(tmp_path):
+def test_connect_locations(test_db):
     target_location = Location(
         name="hall of the mountain king",
         short_description="hall of the mountain king short description",
@@ -81,60 +90,60 @@ def test_connect_locations(tmp_path):
         source_location=TEST_LOCATION.name,
         target_location=target_location.name,
         direction="NORTH")
-    write_files([TEST_LOCATION, target_location],[connection], [], tmp_path.as_posix())
-    content = (tmp_path / "map.txt").read_text()
+    session_id: str = write_files([TEST_LOCATION, target_location],[connection], [], test_db)
+    content: str = fetch_file(session_id, "map.txt", test_db)[0]
 
     expected = ".connectOneWay(Constants.DARK_CAVE_NAME, Direction.NORTH, Constants.HALL_OF_THE_MOUNTAIN_KING_NAME)"
     assert expected in content
 
 
-def test_empty_aliases(tmp_path):
+def test_empty_aliases(test_db):
     item = Item(name="torch",
                 inventory_description="torch inventory description",
                 location_description="torch location description",
                 detailed_description="torch detailed description",
                 aliases=[],
                 location="dark cave")
-    write_files([], [], [item], tmp_path.as_posix())
+    session_id: str = write_files([], [], [item], test_db)
 
-    content = (tmp_path / "Constants.java").read_text()
+    content: str = fetch_file(session_id, "Constants.java", test_db)[0]
     assert 'TORCH_ALIASES = Set.of();' in content
 
 
-def test_starting_location_sets_starting(tmp_path):
+def test_starting_location_sets_starting(test_db):
     location = Location(
         name="entrance hall",
         short_description="entrance hall short description",
         long_description="entrance hall long description",
         is_starting_location=True,
     )
-    write_files([location], [], [], tmp_path.as_posix())
+    session_id: str = write_files([location], [], [], test_db)
 
-    content = (tmp_path / "map.txt").read_text()
+    content: str = fetch_file(session_id, "map.txt", test_db)[0]
     assert ".setStartingLocation(Constants.ENTRANCE_HALL_NAME)" in content
 
 
-def test_non_starting_location_no_starting_set(tmp_path):
-    write_files([TEST_LOCATION], [], [], tmp_path.as_posix())
+def test_non_starting_location_no_starting_set(test_db):
+    session_id: str = write_files([TEST_LOCATION], [], [], test_db)
 
-    content = (tmp_path / "map.txt").read_text()
+    content: str = fetch_file(session_id, "map.txt", test_db)[0]
     assert ".setStartingLocation" not in content
 
 
-def test_multi_word_name_screaming_snake_case(tmp_path):
+def test_multi_word_name_screaming_snake_case(test_db):
     item = Item(name="rusty old key",
                 inventory_description="rusty old key inventory description",
                 location_description="rusty old key location description",
                 detailed_description="rusty old key detailed description",
                 aliases=[],
                 location="dark cave")
-    write_files([], [], [item], tmp_path.as_posix())
+    session_id: str = write_files([], [], [item], test_db)
 
-    content = (tmp_path / "Constants.java").read_text()
+    content: str = fetch_file(session_id, "Constants.java", test_db)[0]
     assert 'RUSTY_OLD_KEY_NAME = "rusty old key";' in content
 
 
-def test_full_map(tmp_path):
+def test_full_map(test_db):
     entrance = Location(
         name="entrance",
         short_description="entrance short description",
@@ -158,10 +167,10 @@ def test_full_map(tmp_path):
         direction="DOWN",
     )
 
-    write_files([entrance, cellar], [connection], [lantern], tmp_path.as_posix())
+    session_id: str = write_files([entrance, cellar], [connection], [lantern], test_db)
 
     # Verify Constants.java
-    constants = (tmp_path / "Constants.java").read_text()
+    constants = fetch_file(session_id, "Constants.java", test_db)[0]
 
     # Section headers
     assert "///// Item constants /////" in constants
@@ -185,7 +194,7 @@ def test_full_map(tmp_path):
     assert 'WINE_CELLAR_LONG_DESCRIPTION = "wine cellar long description";' in constants
 
     # Verify map.txt
-    map_txt = (tmp_path / "map.txt").read_text()
+    map_txt = fetch_file(session_id, "map.txt", test_db)[0]
 
     # Section headers
     assert "///// Add Items /////" in map_txt
