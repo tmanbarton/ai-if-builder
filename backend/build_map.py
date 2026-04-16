@@ -61,7 +61,7 @@ def write_files(locations: list[Location], connections: list[Connection], items:
     :param locations:
     :param connections:
     :param items:
-    :return: Session ID of the successfully inserted record
+    :return: Session ID of the successfully inserted records
     """
     session_id: str = str(uuid.uuid4())
 

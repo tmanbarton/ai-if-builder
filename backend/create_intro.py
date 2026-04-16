@@ -4,6 +4,7 @@ from io import StringIO
 
 from anthropic import Anthropic
 
+from backend.database import insert_file
 from backend.models.custom_intro_answer import CustomIntroAnswer
 from backend.models.custom_intro_response import CustomIntroResponse
 from backend.models.intro import Intro
@@ -51,7 +52,8 @@ def create_intro(q: queue.Queue, spec: str):
 
     q.put('event: status\ndata: Intro created.\n\n')
 
-def write_files(should_skip_intro: bool, game_intro: str, intro_response: CustomIntroResponse, intro_answer: list[CustomIntroAnswer]):
+def write_files(should_skip_intro: bool, game_intro: str, intro_response: CustomIntroResponse, intro_answer: list[CustomIntroAnswer],
+                db_name: str = 'database.db'):
     session_id: str = str(uuid.uuid4())
 
     constants_buf: StringIO = StringIO()
@@ -61,9 +63,12 @@ def write_files(should_skip_intro: bool, game_intro: str, intro_response: Custom
     if game_intro is not None:
         constants_buf.write(f'.gameIntro({game_intro})')
 
-    if intro_response.yes_answer is not None and intro_response.no_answer is not None:
+    if intro_response.yes_answer is not None or intro_response.no_answer is not None:
         constants_buf.write(f'.withIntroResponse({intro_response.yes_answer}, {intro_response.no_answer})')
 
+    insert_file(session_id, 'intro-info.txt', constants_buf.getvalue(), db_name)
+
+    return session_id
     # .skipIntro()
     # .withIntroResponse(yesAnswer, noAnswer)
     # .withGameIntro(introMessage)
