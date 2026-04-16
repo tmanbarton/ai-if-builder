@@ -22,13 +22,19 @@ Guidance for Claude Code when working in this repo. See `README.md` for project 
 
 ## Coding conventions
 
-- **Always write a docstring for every new function.** Use reST/Sphinx style to match existing code:
+- **Always write a docstring for every new function, including tests.** Use reST/Sphinx style to match existing code:
   ```python
   def foo(bar: str) -> int:
       """
       Short summary of what the function does.
       :param bar: What this parameter is for.
       :return: What is returned.
+      """
+  ```
+  ```python
+  def test_foo(bar: str) -> int:
+      """
+      Short summary of what the test does. NOT a restatement of the function name. Don't include docstring if the test name is enough.
       """
   ```
 - **Use type hints** on function signatures and on local variables where the type isn't obvious from context. Existing code does this consistently (e.g. `session_id: str = ...`, `locations: list[Location] = ...`).
