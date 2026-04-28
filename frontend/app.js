@@ -81,6 +81,8 @@ function handleSSEEvent(raw) {
 
     if (eventType === "status") {
         addStatus(data);
+    } else if (eventType === "status_done") {
+        addStatus(data, "done");
     } else if (eventType === "file") {
         const parsed = JSON.parse(data);
         generatedFiles[parsed.name] = parsed.content;
@@ -91,8 +93,9 @@ function handleSSEEvent(raw) {
     }
 }
 
-function addStatus(message) {
+function addStatus(message, className) {
     const li = document.createElement("li");
+    if (className) li.classList.add(className);
     li.textContent = message;
     statusLog.appendChild(li);
     statusLog.scrollTop = statusLog.scrollHeight;

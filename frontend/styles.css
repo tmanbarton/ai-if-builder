@@ -120,6 +120,10 @@ button#generate-btn:disabled {
     color: #4a7c59;
 }
 
+#status-log li.done {
+    color: #4a7c59;
+}
+
 /* File tabs and content */
 
 #file-tabs {

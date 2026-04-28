@@ -51,7 +51,7 @@ def build_map(q: queue.Queue, spec: str):
     items: list[Item] = game_map.items
     session_id: str = write_files(locations, connections, items)
 
-    q.put("event: status\ndata: Map created.\n\n")
+    q.put("event: status_done\ndata: Map created.\n\n")
     return session_id
 
 

@@ -50,7 +50,7 @@ def create_intro(q: queue.Queue, spec: str):
     write_files(should_skip_intro, game_intro, intro_response, intro_answer)
     # todo what to do for when intro answer is not None? Need to call Claude and have it reference the docs.
 
-    q.put('event: status\ndata: Intro created.\n\n')
+    q.put('event: status_done\ndata: Intro created.\n\n')
 
 def write_files(should_skip_intro: bool, game_intro: str | None, intro_response: CustomIntroResponse, intro_answer: list[CustomIntroAnswer],
                 db_name: str = 'database.db'):
