@@ -21,14 +21,14 @@ numbers in this order: '58, 33, 4'. When the chest is opened, it reveals two hid
 Note how the description doesn't include information about where the numbers are located since the number lock doesn't care about the
 location of the numbers, just the number order. The description gives only the information needed to create the puzzle.
 """
-# todo spec is not passed in as a string here. It's passing in the whole tool block.
-def define_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
+
+def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
     q.put('event: status\ndata: Analyzing puzzles...\n\n')
     puzzles_json: str = json.dumps(tool_input)
     messages = [{'role': 'user', 'content': [{'type': 'text', 'text': puzzles_json}]}]
     client = Anthropic()
     response = client.messages.parse(
-        model='claude-sonnet-4-6',
+        model=CLAUDE_SONNET_MODEL,
         max_tokens=16000,
         system=system_message,
         messages=messages,

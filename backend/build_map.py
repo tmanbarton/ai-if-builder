@@ -37,7 +37,7 @@ def build_map(q: queue.Queue, spec: str):
     messages = [{"role": "user", "content": spec}]
     client = Anthropic()
     response = client.messages.parse(
-        model="claude-sonnet-4-6",
+        model=CLAUDE_SONNET_MODEL,
         max_tokens=16000,
         system=system_message,
         messages=messages,

@@ -1,18 +1,52 @@
 # todo copy over RAG for if-engine documentation from other project
+import json
 import queue
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+from anthropic import Anthropic
+from sentence_transformers import SentenceTransformer
+
+from backend.constants import JSON_FILE_PATH, SENTENCE_TRANSFORMER_MODEL, CLAUDE_HAIKU_MODEL
 
 system_message = """
-Use this tool whenever you need information about how to use the if-engine Java library.
-This tool allows you to queries the if-engine repo's README using natural language, so ask anything about implementation details for parts of 
-the game that can't be implemented deterministically. An example would be a custom command. Use this tool to determine how a custom command is built.
-You will receive a JSON blob with fields that include a description of what the particular object should do.
-Your job is to identify what code is needed to create the part of the game in question.
-Example: puzzle with description: Player must use the key to unlock and open a door to reveal hidden items: jar, hammer, and hatchet.
-You have several questions to ask. "How do I make something unlock using this library?" "How do I reveal hidden items using this library?"
-Repeat this until you have a complete understanding of how to create the puzzle.
-Note: Commands can be completely custom or can override existing commands, based on the exact command provided, you must determine what is the
-relevant questions to ask. 
+You will be provided with a question and the top 3 chunks from RAG embedding of the README for the if-engine repo.
+Provide an answer to the question based on the given documentation.
+You must provide code examples when necessary. **Accuracy** is **important**. Be precise with your wording with no room for ambiguity.
+If something is unclear in the question, ask for clarification. If the docs don't answer the question, say so.
 """
+# todo add a little more at the end for if the docs don't answer the question?
+model = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
 
-def query_docs(q: queue.Queue, spec: str):
-    a = 0
+def query_docs(q: queue.Queue, tool_input: dict[str, Any]):
+    q.put('event: status\ndata: Fetching documentation...\n\n')
+    return query_embedding(tool_input['question'])
+
+def query_embedding(query: str):
+    with open(JSON_FILE_PATH) as f:
+        embeddings_json = json.load(f)
+
+    chunks = [item['text'] for item in embeddings_json]
+    embeddings = np.array([item['embedding'] for item in embeddings_json])
+
+    # Embed the input question and compare to embedded README to get closest 3 matches
+    input_embedding = model.encode(query)
+    scores = np.dot(embeddings, input_embedding) / (np.linalg.norm(embeddings, axis=1) * np.linalg.norm(input_embedding))
+    top_3 = np.argsort(scores)[-3:]
+
+    # Prepare user message to send to LLM - contains input and the documentation found
+    context = '\n\n'.join(chunks[i] for i in top_3)
+    prepped_input = f'Question:\n{query}\n\nDocumentation:\n{context}'
+    messages = [{"role": "user", "content": prepped_input}]
+
+    # Send to LLM
+    client = Anthropic()
+    response = client.messages.create(
+        model=CLAUDE_HAIKU_MODEL,
+        max_tokens=16000,
+        system=system_message,
+        messages=messages
+    )
+
+    return response.content[0].text

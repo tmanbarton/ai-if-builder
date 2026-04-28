@@ -1,19 +1,18 @@
-from backend.tools.define_puzzles import define_puzzles
-from backend.tools.write_commands import write_commands
+from backend.tools.create_puzzles import create_puzzles
+from backend.tools.create_custom_commands import create_custom_commands
 from backend.tools.query_docs import query_docs
 
 TOOL_HANDLERS = {
-    'define_puzzles': define_puzzles,
-    'write_commands': write_commands,
+    'create_puzzles': create_puzzles,
+    'create_custom_commands': create_custom_commands,
     'query_docs': query_docs,
 }
 
 TOOL_DEFINITIONS = [
     {
-        'name': 'define_puzzles',
-        'description': 'This tool is for extracting puzzles from the user\'s input spec for the interactive fiction game. Use this as the first '
-                       'tool call. If no other tools have been called and if you don\'t have the puzzle JSON, use this tool. Other tools depend on '
-                       'the puzzles to be parsed.',
+        'name': 'create_puzzles',
+        'description': 'This tool is for writing puzzles using the if-engine Java library based on descriptions of the puzzles and custom command '
+                       'logic. Use this tool when you if you haven\'t created any puzzles yet.',
         'input_schema': {
             'type': 'object',
             'properties': {
@@ -59,7 +58,7 @@ TOOL_DEFINITIONS = [
         }
     },
     {
-        'name': 'write_commands',
+        'name': 'create_custom_commands',
         'description': 'This tool is for writing a Java file or files to create custom interactive fiction commands using the if-engine Java '
                        'library. Use this tool if no custom commands have been created and when you have the JSON representation of the game\'s '
                        'puzzles (which contain the custom commands).',
@@ -82,7 +81,10 @@ TOOL_DEFINITIONS = [
                                                'possible. If this is a completely new command, consider various states for when/how the user could '
                                                'use the command (example: "eat [object]" or just "eat", and the object could be in the inventory, or '
                                                'at the location, or not present at all). If this is an overridden command, only the specific/custom '
-                                               'use case needs to be handled, other use cases would fall through to the default behavior.'
+                                               'use case needs to be handled, other use cases would fall through to the default behavior. '
+                                               'Note this DOES NOT include commands that are only applicable for specific puzzles. These commands '
+                                               'are ones that are generally applicable throughout the game, outside of puzzles (though they can be '
+                                               'Easter egg-like where they only apply in a certain scenario, if applicable).'
                             }
                         },
                         'required': ['command_name', 'command_description'],
@@ -94,9 +96,13 @@ TOOL_DEFINITIONS = [
     },
     {
         'name': 'query_docs',
-        'description': 'This tool uses Claude to query the RAG-embedded README of the if-engine Java library. Use this whenever you need'
-                       'information about how to use the library, primarily in how to write code using it. Use it by sending a natural-language'
-                       'question to receive information about the if-engine library.',
+        'description': '''Use this tool whenever you need information about how to use the if-engine Java library.
+This tool allows you to queries the if-engine repo's README using natural language, so ask anything about implementation details for parts of the game that can't be implemented deterministically. An example would be a custom command. Use this tool to determine how a custom command is built.
+You will receive a JSON blob with fields that include a description of what the particular object should do. Your job is to identify what code is needed to create the part of the game in question.
+Example: puzzle with description: Player must use the key to unlock and open a door to reveal hidden items: jar, hammer, and hatchet.
+You have several questions to ask. "How do I make something unlock using this library?" "How do I reveal hidden items using this library?"
+Repeat this until you have a complete understanding of how to create the puzzle.
+Note: Commands can be completely custom or can override existing commands, based on the exact command provided, you must determine what is the relevant questions to ask.''',
         'input_schema': {
             'type': 'object',
             'properties': {
