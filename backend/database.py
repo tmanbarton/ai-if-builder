@@ -18,3 +18,7 @@ def fetch_file(session_id: str, file_name: str, db_name: str = 'database.db'):
         cursor: sqlite3.Cursor = conn.execute('SELECT content FROM game_data WHERE session_id = ? AND file_name = ?', (session_id, file_name))
         row = cursor.fetchone()
     return row[0] if row is not None else None
+
+def clear_data(db_name: str = 'database.db'):
+    with sqlite3.connect(db_name) as conn:
+        conn.execute('DELETE FROM game_data')

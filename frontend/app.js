@@ -21,8 +21,6 @@ generateBtn.addEventListener("click", async () => {
     statusPanel.classList.remove("hidden");
     generateBtn.disabled = true;
 
-    addStatus("Sending game description to agents...");
-
     try {
         const response = await fetch("/api/generate_files", {
             method: "POST",

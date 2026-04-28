@@ -1,3 +1,13 @@
+from backend.tools.define_puzzles import define_puzzles
+from backend.tools.write_commands import write_commands
+from backend.tools.query_docs import query_docs
+
+TOOL_HANDLERS = {
+    'define_puzzles': define_puzzles,
+    'write_commands': write_commands,
+    'query_docs': query_docs,
+}
+
 TOOL_DEFINITIONS = [
     {
         'name': 'define_puzzles',
@@ -18,12 +28,12 @@ TOOL_DEFINITIONS = [
                     'items': {
                         'type': 'object',
                         'properties': {
-                            'custom_commands': {
+                            'custom_command_logic': {
                                 'type': 'array',
                                 'items': {
                                     'type': 'string',
                                     'description': 'This is the exact string of the command that the user would type to initiate the custom logic. '
-                                            'e.g. "push" or "take"'
+                                            'e.g. "push" or "take". This includes completely new commands and overridden commands.'
                                 },
                                 'description': 'List of all custom commands that this puzzle requires. This includes completely new commands and '
                                                'overridden commands.'
@@ -36,11 +46,12 @@ TOOL_DEFINITIONS = [
                                                'find 3 numbers that unlock a vault. The numbers are scattered around various locations - pantry (4), '
                                                'grocery store (23), and cafeteria (87). There\'s a notebook found at the desk that indicates the '
                                                'order of the numbers (87, 4, 23) which unlocks the vault. When the player gets those numbers and is '
-                                               'at the vault location they can use the \'enter\' command with the numbers with \'enter 87 4 23\' to '
-                                               'unlock the vault."'
+                                               'at the vault location they can use the "enter" command with the numbers with "enter 87 4 23" to '
+                                               'unlock the vault or use the default "unlock". You must specify how custom command logic works, '
+                                               'whether that\'s new commands or overridden commands.'
                             }
                         },
-                        'required': ['custom_commands', 'detailed_description'],
+                        'required': ['custom_command_logic', 'detailed_description'],
                     }
                 }
             },
@@ -79,6 +90,22 @@ TOOL_DEFINITIONS = [
                 }
             },
             'required': ['commands'],
+        }
+    },
+    {
+        'name': 'query_docs',
+        'description': 'This tool uses Claude to query the RAG-embedded README of the if-engine Java library. Use this whenever you need'
+                       'information about how to use the library, primarily in how to write code using it. Use it by sending a natural-language'
+                       'question to receive information about the if-engine library.',
+        'input_schema': {
+            'type': 'object',
+            'properties': {
+                'question': {
+                    'type': 'string',
+                    'description': 'The question to query the if-engine documentation about.'
+                }
+            },
+            'required': ['question']
         }
     }
 ]

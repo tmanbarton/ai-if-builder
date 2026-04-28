@@ -1,7 +1,11 @@
 import queue
 
+from anthropic import Anthropic
+
 from backend.build_map import build_map
 from backend.create_intro import create_intro
+from backend.database import clear_data
+from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -23,6 +27,39 @@ def run_agent(q: queue.Queue, spec: str):
     build_map(q, spec)
     create_intro(q, spec)
 
+    messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
+    client = Anthropic()
+    while True:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            system=system_message,
+            messages=messages,
+            tools=TOOL_DEFINITIONS,
+            max_tokens=16000
+        )
+
+        messages.append({"role": "assistant", "content": response.content})
+
+        # If Claude didn't say to use a tool, it's done
+        if response.stop_reason != "tool_use":
+            break
+
+        # Otherwise find and execute each specified tool
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                # Dispatch tool using the tool_handler dict
+                handler = TOOL_HANDLERS[block.name]
+                result = handler(q, block.input)
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result
+                })
+
+        messages.append({"role": "user", "content": tool_results})
+
     # messages = [{"role": "user", "content": spec}]
     #
     # q.put("event: status\ndata: Parsing specs\n\n")
@@ -37,9 +74,7 @@ def run_agent(q: queue.Queue, spec: str):
     #
     # messages.append({"role": "agent", "content": response.content[0].text})
 
+    # Delete generated files before sending final result to frontend.
+    clear_data()
 
     q.put(None)
-
-    def cleanup():
-        # todo clean up files that were generated once they are sent to the frontend
-        return None

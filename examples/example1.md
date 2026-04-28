@@ -60,7 +60,7 @@ steak in the kitchen.
   - Server runs/limps into the kitchen screaming about a mouse stabbing his foot
   - Mouse jumps down from table to avoid notice
   - Creates chaos and an opportunity to get into the kitchen since there are a bunch of people going in and out now
-  - Adds something about "severs running about" to the end of each location description.
+  - Adds something about "servers running about" to the end of each location description.
 - Broom
   - Broom in the kitchen that looks like it could work as a ramp if it was knocked over
   - Mouse can "push" the broom over to make it into a ramp that the mouse can climb up and onto the counter to get to the steak
