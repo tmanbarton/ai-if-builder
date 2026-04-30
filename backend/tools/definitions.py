@@ -1,4 +1,4 @@
-from backend.tools.create_puzzles import create_puzzles
+from backend.tools.create_puzzles_agent import create_puzzles
 from backend.tools.create_custom_commands import create_custom_commands
 from backend.tools.query_docs import query_docs
 
@@ -8,55 +8,7 @@ TOOL_HANDLERS = {
    "query_docs": query_docs,
 }
 
-TOOL_DEFINITIONS = [
-    {
-       "name": "create_puzzles",
-       "description": "This tool is for writing puzzles using the if-engine Java library based on descriptions of the puzzles and custom command"
-                      "logic. Use this tool when you if you haven't created any puzzles yet.",
-       "input_schema": {
-           "type": "object",
-           "properties": {
-               "puzzles": {
-                   "type": "array",
-                   "description": "This is an array of all the puzzles in the game. A puzzle is anything the user must do in order to progress the"
-                                  "game other than move from location to location. The input spec may have any number of puzzles and the user"
-                                  "may indicate them explicitly or implicitly. Examples of explicit puzzles: \n'Puzzles: \n- The player needs to open"
-                                  "a drawer to reveal a key.\n- The player uses the key to unlock a door in the basement.' Examples or implicit"
-                                  "puzzles: 'The player starts in the kitchen. They need to find a key in the drawer by opening it then use that"
-                                  "key to open a drawer in the basement.'",
-                   "items": {
-                       "type": "object",
-                       "properties": {
-                           "custom_command_logic": {
-                               "type": "array",
-                               "items": {
-                                   "type": "string",
-                                   "description": "This is the exact string of the command that the user would type to initiate the custom logic."
-                                           "e.g. 'push' or 'take'. This includes completely new commands and overridden commands."
-                                },
-                               "description": "List of all custom commands that this puzzle requires. This includes completely new commands and"
-                                              "overridden commands."
-                            },
-                           "detailed_description": {
-                               "type": "string",
-                               "description": "This is the detailed descriptions of the puzzle. The description should include the"
-                                              "setup (if necessary), the success criteria, detailed information on how the puzzle works,"
-                                              "commands that are needed and details on corner cases and happy paths. Example: 'The user needs to"
-                                              "find 3 numbers that unlock a vault. The numbers are scattered around various locations - pantry (4),"
-                                              "grocery store (23), and cafeteria (87). There's a notebook found at the desk that indicates the"
-                                              "order of the numbers (87, 4, 23) which unlocks the vault. When the player gets those numbers and is"
-                                              "at the vault location they can use the 'enter' command with the numbers with 'enter 87 4 23' to"
-                                              "unlock the vault or use the default 'unlock'. You must specify how custom command logic works,"
-                                              "whether that's new commands or overridden commands."
-                            }
-                        },
-                       "required": ["custom_command_logic", "detailed_description"],
-                    }
-                }
-            },
-           "required": ["puzzles"],
-        }
-    },
+TOP_LEVEL_TOOL_DEFINITIONS = [
     {
        "name": "create_custom_commands",
        "description": "This tool is for writing a Java file or files to create custom interactive fiction commands using the if-engine Java"
@@ -95,6 +47,66 @@ TOOL_DEFINITIONS = [
         }
     },
     {
+       "name": "create_puzzles",
+       "description": """This tool is for writing Java code for puzzles defined in a JSON blob, pre-parsed based on a user specification. 
+Your job is to write Java code for these puzzles using the if-engine Java library. Puzzles are essentially special things that happen on 
+certain commands, those can be completely new, custom commands or default commands with overridden behavior. To learn how the if-engine library 
+works, use the query_docs tool to ask a question. Example: detailed puzzle description: The player finds a bottle in the kitchen location 
+and, once they have the bottle, they can take the spilled grease from the garage (fill the bottle since you can't take the grease with your
+hands). The player can then put the grease on the door with the rusted hinges in the basement to open it and continue.
+""",
+       "input_schema": {
+           "type": "object",
+           "properties": {
+               "puzzles": {
+                   "type": "array",
+                   "description": """This is an array of all the puzzles in the game. A puzzle is anything the user must do in order to progress the
+game other than move from location to location. The input spec may have any number of puzzles and the user
+may indicate them explicitly or implicitly. Examples of explicit puzzles:
+"Puzzles:
+- The player needs to open a drawer to reveal a key.
+- The player uses the key to unlock a door in the basement."
+Examples or implicit puzzles:
+"The player starts in the kitchen. They need to find a key in the drawer by opening it then use that key to open 
+a drawer in the basement."
+""",
+                   "items": {
+                       "type": "object",
+                       "properties": {
+                           "custom_command_logic": {
+                               "type": "array",
+                               "items": {
+                                   "type": "string",
+                                   "description": "This is the exact string of the command that the user would type to initiate the custom logic."
+                                           "e.g. 'push' or 'take'. This includes completely new commands and overridden commands."
+                                },
+                               "description": "List of all custom commands that this puzzle requires. This includes completely new commands and"
+                                              "overridden commands."
+                            },
+                           "detailed_description": {
+                               "type": "string",
+                               "description": "This is the detailed descriptions of the puzzle. The description should include the"
+                                              "setup (if necessary), the success criteria, detailed information on how the puzzle works,"
+                                              "commands that are needed and details on corner cases and happy paths. Example: 'The user needs to"
+                                              "find 3 numbers that unlock a vault. The numbers are scattered around various locations - pantry (4),"
+                                              "grocery store (23), and cafeteria (87). There's a notebook found at the desk that indicates the"
+                                              "order of the numbers (87, 4, 23) which unlocks the vault. When the player gets those numbers and is"
+                                              "at the vault location they can use the 'enter' command with the numbers with 'enter 87 4 23' to"
+                                              "unlock the vault or use the default 'unlock'. You must specify how custom command logic works,"
+                                              "whether that's new commands or overridden commands."
+                            }
+                        },
+                       "required": ["custom_command_logic", "detailed_description"],
+                    }
+                }
+            },
+           "required": ["puzzles"],
+        }
+    }
+]
+
+CREATE_PUZZLES_AGENT_TOOLS = [
+    {
        "name": "query_docs",
        "description": """Use this tool whenever you need information about how to use the if-engine Java library.
 This tool allows you to queries the if-engine repo's README using natural language, so ask anything about implementation details for parts of the game that can't be implemented deterministically. An example would be a custom command. Use this tool to determine how a custom command is built.
@@ -112,6 +124,16 @@ Note: Commands can be completely custom or can override existing commands, based
                 }
             },
            "required": ["question"]
+        }
+    },
+    {
+        "name": "write_puzzles",
+        "description": "",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+
+            }
         }
     }
 ]

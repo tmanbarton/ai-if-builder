@@ -5,6 +5,7 @@ from io import StringIO
 
 from anthropic import Anthropic
 
+from backend.constants import CLAUDE_SONNET_MODEL
 from backend.database import insert_file
 from backend.models.connection import Connection
 from backend.models.item import Item

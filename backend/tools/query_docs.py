@@ -1,7 +1,5 @@
-# todo copy over RAG for if-engine documentation from other project
 import json
 import queue
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -37,8 +35,8 @@ def query_embedding(query: str):
 
     # Prepare user message to send to LLM - contains input and the documentation found
     context = "\n\n".join(chunks[i] for i in top_3)
-    prepped_input = f"Question:\n{query}\n\nDocumentation:\n{context}"
-    messages = [{"role": "user", "content": prepped_input}]
+    augmented_input = f"Question:\n{query}\n\nDocumentation:\n{context}"
+    messages = [{"role": "user", "content": augmented_input}]
 
     # Send to LLM
     client = Anthropic()

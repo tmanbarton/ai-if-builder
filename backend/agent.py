@@ -3,9 +3,10 @@ import queue
 from anthropic import Anthropic
 
 from backend.build_map import build_map
+from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
 from backend.database import clear_data
-from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
+from backend.tools.definitions import TOP_LEVEL_TOOL_DEFINITIONS, TOOL_HANDLERS
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -34,7 +35,7 @@ def run_agent(q: queue.Queue, spec: str):
             model=CLAUDE_SONNET_MODEL,
             system=system_message,
             messages=messages,
-            tools=TOOL_DEFINITIONS,
+            tools=TOP_LEVEL_TOOL_DEFINITIONS,
             max_tokens=16000
         )
 

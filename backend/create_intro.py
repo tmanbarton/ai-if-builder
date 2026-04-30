@@ -4,6 +4,7 @@ from io import StringIO
 
 from anthropic import Anthropic
 
+from backend.constants import CLAUDE_SONNET_MODEL
 from backend.database import insert_file
 from backend.models.custom_intro_answer import CustomIntroAnswer
 from backend.models.custom_intro_response import CustomIntroResponse
