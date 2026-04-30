@@ -20,15 +20,15 @@ If something is unclear in the question, ask for clarification. If the docs don'
 model = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
 
 def query_docs(q: queue.Queue, tool_input: dict[str, Any]):
-    q.put('event: status\ndata: Fetching documentation...\n\n')
-    return query_embedding(tool_input['question'])
+    q.put("event: status\ndata: Fetching documentation...\n\n")
+    return query_embedding(tool_input["question"])
 
 def query_embedding(query: str):
     with open(JSON_FILE_PATH) as f:
         embeddings_json = json.load(f)
 
-    chunks = [item['text'] for item in embeddings_json]
-    embeddings = np.array([item['embedding'] for item in embeddings_json])
+    chunks = [item["text"] for item in embeddings_json]
+    embeddings = np.array([item["embedding"] for item in embeddings_json])
 
     # Embed the input question and compare to embedded README to get closest 3 matches
     input_embedding = model.encode(query)
@@ -36,8 +36,8 @@ def query_embedding(query: str):
     top_3 = np.argsort(scores)[-3:]
 
     # Prepare user message to send to LLM - contains input and the documentation found
-    context = '\n\n'.join(chunks[i] for i in top_3)
-    prepped_input = f'Question:\n{query}\n\nDocumentation:\n{context}'
+    context = "\n\n".join(chunks[i] for i in top_3)
+    prepped_input = f"Question:\n{query}\n\nDocumentation:\n{context}"
     messages = [{"role": "user", "content": prepped_input}]
 
     # Send to LLM
