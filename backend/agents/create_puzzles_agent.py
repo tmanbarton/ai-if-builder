@@ -5,9 +5,7 @@ from typing import Any
 from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
-from backend.models.nondeterministic_fields import NondeterministicFields
-from backend.models.puzzle import Puzzle
-from backend.tools.definitions import CREATE_PUZZLES_AGENT_TOOLS, TOOL_HANDLERS
+from backend.tools.definitions import CREATE_PUZZLES_AGENT_TOOLS, CREATE_PUZZLES_TOOL_HANDLERS
 
 system_message = """
 You're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
@@ -62,7 +60,7 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
         for block in response.content:
             if block.type == "tool_use":
                 # Dispatch the tool using the tool_handler dict
-                handler = TOOL_HANDLERS[block.name]
+                handler = CREATE_PUZZLES_TOOL_HANDLERS[block.name]
                 result = handler(q, block.input)
 
                 tool_results.append({
@@ -72,10 +70,3 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
                 })
 
         messages.append({"role": "user", "content": tool_results})
-
-
-    # todo change response from NondeterministicFields to something else. The response is now actual Java code.
-    #  Also could be Claude saying to use the query_docs tool
-    response_data: NondeterministicFields = response.parsed_output
-    puzzles: list[Puzzle] = response_data.puzzles
-    a = 0

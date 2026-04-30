@@ -1,6 +1,6 @@
 from queue import Queue
 
-from backend.agent import generator
+from backend.agents.agent import generator
 
 
 def test_generator_yields_messages():
