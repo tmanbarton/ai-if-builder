@@ -6,7 +6,7 @@ from backend.build_map import build_map
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
 from backend.database import clear_data
-from backend.tools.definitions import TOP_LEVEL_TOOL_DEFINITIONS, TOP_LEVEL_TOOL_HANDLERS
+from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -35,7 +35,7 @@ def run_agent(q: queue.Queue, spec: str):
             model=CLAUDE_SONNET_MODEL,
             system=system_message,
             messages=messages,
-            tools=TOP_LEVEL_TOOL_DEFINITIONS,
+            tools=TOOL_DEFINITIONS,
             max_tokens=16000
         )
 
@@ -50,7 +50,7 @@ def run_agent(q: queue.Queue, spec: str):
         for block in response.content:
             if block.type == "tool_use":
                 # Dispatch tool using the tool_handler dict
-                handler = TOP_LEVEL_TOOL_HANDLERS[block.name]
+                handler = TOOL_HANDLERS[block.name]
                 result = handler(q, block.input)
 
                 tool_results.append({

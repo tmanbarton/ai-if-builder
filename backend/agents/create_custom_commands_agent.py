@@ -1,3 +1,4 @@
+import json
 import queue
 from typing import Any
 
@@ -5,7 +6,7 @@ from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.models.custom_command import CustomCommand
-from backend.tools.definitions import CREATE_CUSTOM_COMMANDS_AGENT_TOOLS, CREATE_CUSTOM_COMMAND_TOOL_HANDLERS
+from backend.tools.custom_command_tool_definitions import CREATE_CUSTOM_COMMANDS_AGENT_TOOLS, CREATE_CUSTOM_COMMAND_TOOL_HANDLERS
 
 agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
 You will receive a pre-parsed JSON object representing custom commands for the interactive fiction game. These commands are available in general game play, i.e. not for specific puzzles.
@@ -40,8 +41,9 @@ def create_custom_commands(q: queue.Queue, tool_input: dict[str, Any]):
     q.put("event: status\ndata: Creating custom commands...\n\n")
 
     custom_commands: list[CustomCommand] = extract_custom_commands_from_spec(tool_input["user_spec"])
+    custom_commands_json = json.dumps([c.model_dump() for c in custom_commands])
 
-    messages = [{"role": "user", "content": [{"type": "text", "text": custom_commands}]}]
+    messages = [{"role": "user", "content": [{"type": "text", "text": custom_commands_json}]}]
     client = Anthropic()
 
     # Sub-agent loop
