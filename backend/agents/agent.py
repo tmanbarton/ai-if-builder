@@ -6,7 +6,7 @@ from backend.build_map import build_map
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
 from backend.database import clear_data
-from backend.tools.definitions import TOP_LEVEL_TOOL_DEFINITIONS, TOOL_HANDLERS
+from backend.tools.definitions import TOP_LEVEL_TOOL_DEFINITIONS, TOP_LEVEL_TOOL_HANDLERS
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -46,11 +46,11 @@ def run_agent(q: queue.Queue, spec: str):
             break
 
         # Otherwise find and execute each specified tool
-        tool_results = []
+        tool_results: list[dict] = []
         for block in response.content:
             if block.type == "tool_use":
                 # Dispatch tool using the tool_handler dict
-                handler = TOOL_HANDLERS[block.name]
+                handler = TOP_LEVEL_TOOL_HANDLERS[block.name]
                 result = handler(q, block.input)
 
                 tool_results.append({
@@ -60,20 +60,6 @@ def run_agent(q: queue.Queue, spec: str):
                 })
 
         messages.append({"role": "user", "content": tool_results})
-
-    # messages = [{"role": "user", "content": spec}]
-    #
-    # q.put("event: status\ndata: Parsing specs\n\n")
-    # client = Anthropic()
-    # response = client.messages.parse(
-    #     model=CLAUDE_SONNET_MODEL,
-    #     max_tokens=16000,
-    #     system=system_message,
-    #     messages=messages,
-    #     output_format=GameModel
-    # )
-    #
-    # messages.append({"role": "agent", "content": response.content[0].text})
 
     # Delete generated files before sending final result to frontend.
     clear_data()

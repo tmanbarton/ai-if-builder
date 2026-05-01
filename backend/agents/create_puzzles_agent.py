@@ -5,11 +5,11 @@ from typing import Any
 from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
+from backend.models.puzzle import Puzzle
 from backend.tools.definitions import CREATE_PUZZLES_AGENT_TOOLS, CREATE_PUZZLES_TOOL_HANDLERS
 
-system_message = """
-You're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
-You are a skilled Java developer. You will receive a pre-parsed JSON object representing any puzzles in the game based on user specification.
+agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
+You will receive a pre-parsed JSON object representing any puzzles in the game based on user specification.
 To get information about the if-engine library, use the query_docs tool. First, analyze the puzzles one at a time and determine what questions need 
 to be asked. Example puzzle: "The player finds a bottle in the kitchen location and, once they have the bottle, they can take the spilled grease from 
 the garage (fill the bottle since you can't take the grease with your hands). The player can then put the grease on the door with the rusted 
@@ -24,29 +24,42 @@ and, How do I create a new command?
 How do I change game state when a user runs a command?
 
 Note: if there is a completely new command that the puzzle relies on, make sure it doesn't already exist. The create_custom_commands tool is called before this one 
-and its job is to create custom commands that apply to the whole game. Puzzles could use commands like that.
+and its job is to create custom commands that apply to the whole game. Puzzles could use commands like that. Same for overridden commands - check to make sure the behavior doesn't already exist and either add new behavior or update existing behavior.
+"""
+
+json_parse_system_message = """You are an expert at extracting important information from user input. Specifically interactive fiction specifications.
+Your job is to extract puzzles from a user-provided spec. There's a chance the spec won't contain puzzles, but most likely it will. If it does contain puzzles you must identify them to parse them into JSON.
+Example:
+- The player has to open a locked drawer in the kitchen using the key from the garage to access a watch.
+(Note, the user would have already placed the key when defining the map)
+Result, something like: There's a drawer in the kitchen that can only be opened when it's unlocked with the key. Opening it will reveal a hidden item: a watch.
+Provide exactly enough information to define the puzzle but not too little to be ambiguous.
+Puzzles can get complex with multiple steps. If there are multiple steps, break them down into one puzzle per step.
 """
 
 def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
     """
     Sub-agent for writing Java code for game puzzles using the if-engine library.
-    It has one tool available: query_docs. It loops, asking query_docs for info on the library and writing code until it determines it's done.
+    It has two tool available: query_docs and write_puzzles. It loops, asking query_docs for info on the library and writing code until it determines it's done.
     :param q: Queue for sending status to SSE connection to show on frontend
     :param tool_input: JSON representing the game's puzzles which is just a detailed description of the puzzle and any custom commands it requires
     with a detailed description of how that command behaves.
     :return:
     """
-    q.put('event: status\ndata: Creating puzzles...\n\n')
-    puzzles_json: str = json.dumps(tool_input)
-    messages = [{'role': 'user', 'content': [{'type': 'text', 'text': puzzles_json}]}]
+    q.put("event: status\ndata: Creating puzzles...\n\n")
+
+    puzzles: list[Puzzle] = extract_puzzles_from_spec(tool_input["user_spec"])
+
+    # puzzles_json: str = json.dumps(tool_input)
+    messages = [{"role": "user", "content": [{"type": "text", "text": puzzles_json}]}]
     client = Anthropic()
 
     # Sub-agent loop
     while True:
-        response = client.messages.parse(
+        response = client.messages.create(
             model=CLAUDE_SONNET_MODEL,
             max_tokens=16000,
-            system=system_message,
+            system=agent_system_message,
             messages=messages,
             tools=CREATE_PUZZLES_AGENT_TOOLS
         )
@@ -70,3 +83,18 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
                 })
 
         messages.append({"role": "user", "content": tool_results})
+
+    return response.content[0].text
+
+def extract_puzzles_from_spec(spec: str):
+    messages = [{"role": "user", "content": spec}]
+    client = Anthropic()
+    response = client.messages.parse(
+        model=CLAUDE_SONNET_MODEL,
+        max_tokens=16000,
+        system=json_parse_system_message,
+        messages=messages,
+        output_format=list[Puzzle]
+    )
+
+    return response.parsed_output
