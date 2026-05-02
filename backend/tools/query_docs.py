@@ -18,7 +18,7 @@ If something is unclear in the question, ask for clarification. If the docs don'
 model = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
 
 def query_docs(q: queue.Queue, tool_input: dict[str, Any]):
-    q.put("event: status\ndata: Fetching documentation...\n\n")
+    q.put(f"event: status\ndata: Fetching documentation... ({tool_input['question']})\n\n")
     return query_embedding(tool_input["question"])
 
 def query_embedding(query: str):
