@@ -1,15 +1,15 @@
-from backend.tools.query_docs import query_docs
+from backend.tools.search_docs import search_docs
 from backend.tools.write_puzzles import write_puzzles
 
 
 CREATE_PUZZLES_TOOL_HANDLERS = {
-    "query_docs": query_docs,
+    "search_docs": search_docs,
     "write_puzzles": write_puzzles
 }
 
 # Create as separate variable so custom_command_tool_definitions can use it since it's the same tool.
-QUERY_DOCS_TOOL = {
-    "name": "query_docs",
+SEARCH_DOCS_TOOL = {
+    "name": "search_docs",
     "description": """Use this tool whenever you need information about how to use the if-engine Java library.
 This tool allows you to queries the if-engine repo's README using natural language, so ask anything about implementation details for parts of the game that can't be implemented deterministically. An example would be a custom command. Use this tool to determine how a custom command is built.
 You will receive a JSON blob with fields that include a description of what the particular object should do. Your job is to identify what code is needed to create the part of the game in question.
@@ -30,7 +30,7 @@ Note: Commands can be completely custom or can override existing commands, based
 }
 
 CREATE_PUZZLES_AGENT_TOOLS = [
-    QUERY_DOCS_TOOL,
+    SEARCH_DOCS_TOOL,
     {
         "name": "write_puzzles",
         "description": "This tool is for writing Java code for the puzzles using the if-engine Java library. At this point you have learned how to use the if-engine library "

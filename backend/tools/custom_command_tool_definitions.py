@@ -1,14 +1,14 @@
-from backend.tools.puzzle_tool_definitions import QUERY_DOCS_TOOL
-from backend.tools.query_docs import query_docs
+from backend.tools.puzzle_tool_definitions import SEARCH_DOCS_TOOL
+from backend.tools.search_docs import search_docs
 from backend.tools.write_custom_commands import write_custom_commands
 
 
 CREATE_CUSTOM_COMMAND_TOOL_HANDLERS = {
-    "query_docs": query_docs,
+    "search_docs": search_docs,
     "write_custom_commands": write_custom_commands
 }
 CREATE_CUSTOM_COMMANDS_AGENT_TOOLS = [
-    QUERY_DOCS_TOOL,
+    SEARCH_DOCS_TOOL,
     {
         "name": "write_custom_commands",
         "description": "This tool is for writing Java code for custom commands using the if-engine Java library. At this point you have learned how to use the if-engine library "

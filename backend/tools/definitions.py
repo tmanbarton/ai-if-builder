@@ -1,11 +1,11 @@
 from backend.agents.create_puzzles_agent import create_puzzles
 from backend.agents.create_custom_commands_agent import create_custom_commands
-from backend.tools.query_docs import query_docs
+from backend.tools.search_docs import search_docs
 
 TOOL_HANDLERS = {
     "create_puzzles": create_puzzles,
     "create_custom_commands": create_custom_commands,
-    "query_docs": query_docs,
+    "search_docs": search_docs,
 }
 
 TOOL_DEFINITIONS = [

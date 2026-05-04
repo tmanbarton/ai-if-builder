@@ -10,7 +10,7 @@ from backend.tools.custom_command_tool_definitions import CREATE_CUSTOM_COMMANDS
 
 agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
 You will receive a pre-parsed JSON object representing custom commands for the interactive fiction game. These commands are available in general game play, i.e. not for specific puzzles.
-To get information about the if-engine library, use the query_docs tool. First, analyze the commands and determine what questions need to be asked in order to write the code.
+To get information about the if-engine library, use the search_docs tool. First, analyze the commands and determine what questions need to be asked in order to write the code.
 Continue asking questions until you are confident you can write the exact code for the commands and the accompanying logic. Note: the commands can be completely new commands or new, custom logic for exiting default commands.
 """
 json_parse_system_message = """You are an expert at extracting important information from user input. Specifically interactive fiction specifications.
@@ -33,7 +33,7 @@ Example 2:
 def create_custom_commands(q: queue.Queue, tool_input: dict[str, Any]):
     """
     Sub-agent for writing Java code for custom commands that can be used in the game that aren't puzzle-specific using the if-engine library.
-    It has two tools available: query_docs and write_custom_commands. It loops, asking query_docs for info on the library and writing code until it determines it's done.
+    It has two tools available: search_docs and write_custom_commands. It loops, asking search_docs for info on the library and writing code until it determines it's done.
     :param q: Queue for sending status to SSE connection to show on frontend
     :param tool_input: JSON representing the custom commands to create.
     :return:

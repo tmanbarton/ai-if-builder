@@ -71,7 +71,7 @@ backend/
     definitions.py     # Tool schemas for the Claude agentic loop
     define_puzzles.py  # Puzzle extraction tool
     write_commands.py  # Java command file generation tool
-    query_docs.py      # RAG-based if-engine doc lookup (planned)
+    search_docs.py      # RAG-based if-engine doc lookup (planned)
 frontend/
   index.html           # Web UI
   app.js               # Client-side JS for SSE streaming and file display

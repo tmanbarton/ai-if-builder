@@ -10,7 +10,7 @@ from backend.tools.puzzle_tool_definitions import CREATE_PUZZLES_AGENT_TOOLS, CR
 
 agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
 You will receive a pre-parsed JSON object representing any puzzles in the game based on user specification.
-To get information about the if-engine library, use the query_docs tool. First, analyze the puzzles one at a time and determine what questions need 
+To get information about the if-engine library, use the search_docs tool. First, analyze the puzzles one at a time and determine what questions need 
 to be asked. Example puzzle: "The player finds a bottle in the kitchen location and, once they have the bottle, they can take the spilled grease from 
 the garage (fill the bottle since you can't take the grease with your hands). The player can then put the grease on the door with the rusted 
 hinges in the basement to open it and continue."
@@ -40,7 +40,7 @@ Puzzles can get complex with multiple steps. If there are multiple steps, break 
 def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
     """
     Sub-agent for writing Java code for game puzzles using the if-engine library.
-    It has two tool available: query_docs and write_puzzles. It loops, asking query_docs for info on the library and writing code until it determines it's done.
+    It has two tool available: search_docs and write_puzzles. It loops, asking search_docs for info on the library and writing code until it determines it's done.
     :param q: Queue for sending status to SSE connection to show on frontend
     :param tool_input: JSON representing the game's puzzles which is just a detailed description of the puzzle and any custom commands it requires
     with a detailed description of how that command behaves.
@@ -70,6 +70,7 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
             break
 
         # todo pull out into separate function since this is the same as in agent.run_agent
+        # todo actually combine this and create custom commands agent into a single agent for writing the code
         tool_results = []
         for block in response.content:
             if block.type == "tool_use":
