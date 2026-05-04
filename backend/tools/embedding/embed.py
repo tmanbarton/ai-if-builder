@@ -13,7 +13,7 @@ from sentence_transformers import SentenceTransformer
 from backend.constants import SENTENCE_TRANSFORMER_MODEL
 
 GITHUB_README_URL = "https://raw.githubusercontent.com/tmanbarton/if-engine/main/README.md"
-JSON_FILE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "ai-if-builder" / "backend" / "tools" / "embedding" / "embeddings.json"
+JSON_FILE_PATH = Path(__file__).resolve().parent.parent.parent.parent.parent / "ai-if-builder" / "backend" / "tools" / "embedding" / "embeddings.json"
 if __name__ == "__main__":
     # Get the README from the public url
     with urllib.request.urlopen(GITHUB_README_URL) as r:
