@@ -6,6 +6,7 @@ from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.models.custom_command import CustomCommand
+from backend.models.custom_commands import CustomCommands
 from backend.tools.custom_command_tool_definitions import CREATE_CUSTOM_COMMANDS_AGENT_TOOLS, CREATE_CUSTOM_COMMAND_TOOL_HANDLERS
 
 agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
@@ -86,7 +87,7 @@ def extract_custom_commands_from_spec(spec: str):
         max_tokens=16000,
         system=json_parse_system_message,
         messages=messages,
-        output_format=list[CustomCommand]
+        output_format=CustomCommands
     )
 
     return response.parsed_output

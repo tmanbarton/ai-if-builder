@@ -6,6 +6,7 @@ from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.models.puzzle import Puzzle
+from backend.models.puzzles import Puzzles
 from backend.tools.puzzle_tool_definitions import CREATE_PUZZLES_AGENT_TOOLS, CREATE_PUZZLES_TOOL_HANDLERS
 
 agent_system_message = """You are a skilled Java developer and you're only job in life is to write Java code using the if-engine library to create puzzles for an interactive fiction game.
@@ -48,7 +49,7 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
     """
     q.put("event: status\ndata: Creating puzzles...\n\n")
 
-    puzzles: list[Puzzle] = extract_puzzles_from_spec(tool_input["user_spec"])
+    puzzles: Puzzles = extract_puzzles_from_spec(tool_input["user_spec"])
     puzzles_json = json.dumps([p.model_dump() for p in puzzles])
 
     # puzzles_json: str = json.dumps(tool_input)
@@ -96,7 +97,7 @@ def extract_puzzles_from_spec(spec: str):
         max_tokens=16000,
         system=json_parse_system_message,
         messages=messages,
-        output_format=list[Puzzle]
+        output_format=Puzzles
     )
 
     return response.parsed_output
