@@ -6,8 +6,8 @@ from anthropic import Anthropic
 from backend.build_map import build_map
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
-from backend.database import clear_data
-from backend.java_scaffolding import initialize
+from backend.database import clear_data, fetch_all_files
+from backend.game_scaffolding import initialize
 from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
 from backend.tools.search_docs import close_mcp_server
 
@@ -70,6 +70,7 @@ def run_agent(q: queue.Queue, spec: str):
 
         messages.append({"role": "user", "content": tool_results})
 
+    data = fetch_all_files(session_id)
     clean_up()
     q.put("event:status_done\ndata:Done")
     q.put(None)

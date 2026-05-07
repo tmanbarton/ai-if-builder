@@ -66,9 +66,13 @@ def write_files(session_id: str, locations: list[Location], connections: list[Co
 
     # Create constants for items and locations. Use the item/location name in all caps for variable names
     constants_buf: StringIO = StringIO()
-    constants_buf.write("""public class Constants {
-    ///// Item constants /////
-    """)
+    constants_buf.write("""package com.example;
+
+import java.util.Set;
+
+public class Constants {
+  ///// Item constants /////
+""")
     for item in items:
         screaming_snake_case_name = item.name.upper().replace(" ", "_")
         constants_buf.write(f"""public static final String {screaming_snake_case_name}_NAME = "{item.name}";
@@ -96,6 +100,7 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
     map_buf.write("""
 package com.example;
 
+import io.github.tmanbarton.ifengine.game.GameMap;
 import io.github.tmanbarton.ifengine.Direction;
 import io.github.tmanbarton.ifengine.Item;
 import io.github.tmanbarton.ifengine.Location;
@@ -105,7 +110,7 @@ public class Map {
   public Map() {}
   
   public GameMap.Builder createMap(GameMap.Builder builder) {
-  builder
+  return builder
 """)
     map_buf.write("///// Add Items /////")
     # Format: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
@@ -136,10 +141,11 @@ public class Map {
     # Format: .connect(source location name, direction, target location name)
     for connection in connections:
         map_buf.write(
-            f'  .connectOneWay(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '
+            f'  .connect(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '
             f'Constants.{connection.target_location.upper().replace(" ", "_")}_NAME)\n')
 
-    map_buf.write("""  }
+    map_buf.write(""";
+  }
 }""")
 
     insert_file(session_id, 'Map.java', map_buf.getvalue(), db_name)

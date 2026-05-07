@@ -13,15 +13,32 @@ TOOL_DEFINITIONS = [
 library. Use this tool if no custom commands have been created and when you have the JSON representation of the game's
 puzzles (which contain the custom commands).""",
         "input_schema": {
-           "type": "object",
-           "properties": {
+            "type": "object",
+            "properties": {
                 "user_spec": {
                     "type": "string",
                     "description": "This is the specification that the user provided as an input. The tool will use this to parse out the commands into JSON then write code.",
-                }
+                },
+                "generated_files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "file_name": {
+                                "type": "string",
+                                "description": "The name of the java file with generated code."
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "This is the boilerplate java code that's pre-made for your reference in any new code you generate."
+                            }
+                        },
+                        "required": ["file_name", "content"]
+                    },
+                },
             },
-           "required": ["user_spec"],
-       }
+            "required": ["user_spec", "generated_files"],
+        }
     },
     {
         "name": "create_puzzles",
@@ -35,7 +52,24 @@ into JSON to ultimately write the code for functional puzzles.
                 "user_spec": {
                     "type": "string",
                     "description": "This is the specification that the user provided as an input. The tool will use this to parse out the puzzles into JSON then write code.",
-                }
+                },
+                "generated_files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "file_name": {
+                                "type": "string",
+                                "description": "The name of the java file with generated code."
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "This is the boilerplate java code that's pre-made for your reference in any new code you generate."
+                            }
+                        },
+                        "required": ["file_name", "content"]
+                    },
+                },
             },
             "required": ["user_spec"],
         }
