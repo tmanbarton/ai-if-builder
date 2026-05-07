@@ -29,19 +29,20 @@ and its job is to create custom commands that apply to the whole game. Puzzles c
 """
 
 json_parse_system_message = """You are an expert at extracting important information from user input. Specifically interactive fiction specifications.
-Your job is to extract puzzles from a user-provided spec. There's a chance the spec won't contain puzzles, but most likely it will. If it does contain puzzles you must identify them to parse them into JSON.
+Your job is to extract puzzles from a user-provided spec. Identify them and describe them in detail.
 Example:
 - The player has to open a locked drawer in the kitchen using the key from the garage to access a watch.
 (Note, the user would have already placed the key when defining the map)
 Result, something like: There's a drawer in the kitchen that can only be opened when it's unlocked with the key. Opening it will reveal a hidden item: a watch.
-Provide exactly enough information to define the puzzle but not too little to be ambiguous.
+Provide a detailed description of the puzzle. You don't want to have too little information, lest it be ambiguous in some aspects.
 Puzzles can get complex with multiple steps. If there are multiple steps, break them down into one puzzle per step.
 """
 
-def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
+def create_puzzles(session_id: str, q: queue.Queue, tool_input: dict[str, Any]):
     """
     Sub-agent for writing Java code for game puzzles using the if-engine library.
     It has two tool available: search_docs and write_puzzles. It loops, asking search_docs for info on the library and writing code until it determines it's done.
+    :param session_id: key for db fetch
     :param q: Queue for sending status to SSE connection to show on frontend
     :param tool_input: JSON representing the game's puzzles which is just a detailed description of the puzzle and any custom commands it requires
     with a detailed description of how that command behaves.
@@ -50,7 +51,7 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
     q.put("event: status\ndata: Creating puzzles...\n\n")
 
     puzzles: Puzzles = extract_puzzles_from_spec(tool_input["user_spec"])
-    puzzles_json = json.dumps([p.model_dump() for p in puzzles])
+    puzzles_json = json.dumps([p.model_dump() for p in puzzles.puzzles])
 
     # puzzles_json: str = json.dumps(tool_input)
     messages = [{"role": "user", "content": [{"type": "text", "text": puzzles_json}]}]
@@ -77,7 +78,7 @@ def create_puzzles(q: queue.Queue, tool_input: dict[str, Any]):
             if block.type == "tool_use":
                 # Dispatch the tool using the tool_handler dict
                 handler = CREATE_PUZZLES_TOOL_HANDLERS[block.name]
-                result = handler(q, block.input)
+                result = handler(session_id, q, block.input)
 
                 tool_results.append({
                     "type": "tool_result",

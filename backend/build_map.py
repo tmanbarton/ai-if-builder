@@ -1,6 +1,4 @@
-import os
 import queue
-import uuid
 from io import StringIO
 
 from anthropic import Anthropic
@@ -11,6 +9,7 @@ from backend.models.connection import Connection
 from backend.models.item import Item
 from backend.models.location import Location
 from backend.models.map import Map
+
 
 system_message = """
 Your only job in life is to extract an interactive fiction map from a spec input into JSON.
@@ -23,13 +22,13 @@ There are several fields for you to populate as described in the structured outp
 Note: DO NOT try to fill in the descriptions with actual text, use placeholder text like "cave long description" or "backpack detailed description". The user will complete the full descriptions themselves.
 """
 
-
-def build_map(q: queue.Queue, spec: str):
+def build_map(session_id: str, q: queue.Queue, spec: str):
     """
     Sends the spec input to Claude for it to extract the locations and items and parses the JSON response representing
     the map to create the game map code.
     This includes the locations and their connections, and the items. Those are the only aspects that can
     be created deterministically from the JSON.
+    :param session_id: key for db fetch
     :param q: Queue for sending SSE events to the front end. Automatically sends the message when an element is added
     :param spec: Game spec that the user submitted to send to Claude.
     """
@@ -50,29 +49,30 @@ def build_map(q: queue.Queue, spec: str):
     locations: list[Location] = game_map.locations
     connections: list[Connection] = game_map.connections
     items: list[Item] = game_map.items
-    session_id: str = write_files(locations, connections, items)
+    write_files(session_id, locations, connections, items)
 
     q.put("event: status_done\ndata: Map created.\n\n")
     return session_id
 
 
-def write_files(locations: list[Location], connections: list[Connection], items: list[Item], db_name: str = 'database.db'):
+def write_files(session_id: str, locations: list[Location], connections: list[Connection], items: list[Item], db_name: str = 'database.db'):
     """
 
+    :param session_id: key for db fetch
     :param locations:
     :param connections:
     :param items:
-    :return: Session ID of the successfully inserted records
+    :param db_name:
     """
-    session_id: str = str(uuid.uuid4())
 
     # Create constants for items and locations. Use the item/location name in all caps for variable names
     constants_buf: StringIO = StringIO()
-    constants_buf.write("///// Item constants /////")
+    constants_buf.write("""public class Constants {
+    ///// Item constants /////
+    """)
     for item in items:
         screaming_snake_case_name = item.name.upper().replace(" ", "_")
-        constants_buf.write(f"""
-public static final String {screaming_snake_case_name}_NAME = "{item.name}";
+        constants_buf.write(f"""public static final String {screaming_snake_case_name}_NAME = "{item.name}";
 public static final String {screaming_snake_case_name}_INVENTORY_DESCRIPTION = "{item.inventory_description}";
 public static final String {screaming_snake_case_name}_LOCATION_DESCRIPTION = "{item.location_description}";
 public static final String {screaming_snake_case_name}_DETAILED_DESCRIPTION = "{item.detailed_description}";
@@ -88,6 +88,7 @@ public static final String {screaming_snake_case_name}_SHORT_DESCRIPTION = "{loc
 public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{location.long_description}";
         """)
 
+    constants_buf.write("}")
     insert_file(session_id, 'Constants.java', constants_buf.getvalue(), db_name)
 
     # Create the map items and connections using the Java if-engine library's builder.
@@ -104,7 +105,7 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
   Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
   Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
   Constants.{screaming_snake_case_name}_ALIASES),
-  Constants.{item.location.upper().replace(" ", "_")}_NAME))""")
+  Constants.{item.location.upper().replace(" ", "_")}_NAME)""")
 
     map_buf.write("\n\n///// Add Locations /////")
     # Format: .addLocation(new Location(name, long description, short description))
@@ -126,5 +127,3 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
             f'Constants.{connection.target_location.upper().replace(" ", "_")}_NAME)\n')
 
     insert_file(session_id, 'map.txt', map_buf.getvalue(), db_name)
-    
-    return session_id

@@ -20,7 +20,7 @@ what is intro information and if it's present at all.
 Note: DO NOT try to fill in the response with actual text, use placeholder text like "yes response" or "game intro". The user will complete the full responses themselves.
 '''
 
-def create_intro(q: queue.Queue, spec: str):
+def create_intro(session_id: str, q: queue.Queue, spec: str):
     """
     Sends the spec input to Claude for it to extract any information on the intro to the game into JSON. If any exist, deterministically create
     intro information based on the JSON. That information can be:\n
@@ -48,14 +48,12 @@ def create_intro(q: queue.Queue, spec: str):
     intro_response: CustomIntroResponse = intro.intro_response
     intro_answer: list[CustomIntroAnswer] = intro.intro_answer
 
-    write_files(should_skip_intro, game_intro, intro_response, intro_answer)
+    write_files(session_id, should_skip_intro, game_intro, intro_response)
     # todo what to do for when intro answer is not None? Need to call Claude and have it reference the docs.
 
     q.put('event: status_done\ndata: Intro created.\n\n')
 
-def write_files(should_skip_intro: bool, game_intro: str | None, intro_response: CustomIntroResponse, intro_answer: list[CustomIntroAnswer],
-                db_name: str = 'database.db'):
-    session_id: str = str(uuid.uuid4())
+def write_files(session_id: str, should_skip_intro: bool, game_intro: str | None, intro_response: CustomIntroResponse, db_name: str = 'database.db'):
 
     constants_buf: StringIO = StringIO()
     if should_skip_intro:
@@ -68,12 +66,3 @@ def write_files(should_skip_intro: bool, game_intro: str | None, intro_response:
         constants_buf.write(f'.withIntroResponse("{intro_response.yes_answer}", "{intro_response.no_answer}")')
 
     insert_file(session_id, 'intro-info.txt', constants_buf.getvalue(), db_name)
-
-    return session_id
-    # .skipIntro()
-    # .withIntroResponse(yesAnswer, noAnswer)
-    # .withGameIntro(introMessage)
-
-# skip intro
-# with intro responses - yes no
-# with game intro

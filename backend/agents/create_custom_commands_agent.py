@@ -5,7 +5,6 @@ from typing import Any
 from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
-from backend.models.custom_command import CustomCommand
 from backend.models.custom_commands import CustomCommands
 from backend.tools.custom_command_tool_definitions import CREATE_CUSTOM_COMMANDS_AGENT_TOOLS, CREATE_CUSTOM_COMMAND_TOOL_HANDLERS
 
@@ -31,18 +30,19 @@ Example 2:
 "eat" is a default command, but "eat potato" isn't a puzzle, so add the override and add the simple logic to return a command if it's a potato.
 """
 
-def create_custom_commands(q: queue.Queue, tool_input: dict[str, Any]):
+def create_custom_commands(session_id: str, q: queue.Queue, tool_input: dict[str, Any]):
     """
     Sub-agent for writing Java code for custom commands that can be used in the game that aren't puzzle-specific using the if-engine library.
     It has two tools available: search_docs and write_custom_commands. It loops, asking search_docs for info on the library and writing code until it determines it's done.
+    :param session_id: key for db fetch
     :param q: Queue for sending status to SSE connection to show on frontend
     :param tool_input: JSON representing the custom commands to create.
     :return:
     """
     q.put("event: status\ndata: Creating custom commands...\n\n")
 
-    custom_commands: list[CustomCommand] = extract_custom_commands_from_spec(tool_input["user_spec"])
-    custom_commands_json = json.dumps([c.model_dump() for c in custom_commands])
+    custom_commands: CustomCommands = extract_custom_commands_from_spec(tool_input["user_spec"])
+    custom_commands_json = json.dumps([c.model_dump() for c in custom_commands.commands])
 
     messages = [{"role": "user", "content": [{"type": "text", "text": custom_commands_json}]}]
     client = Anthropic()
@@ -67,7 +67,7 @@ def create_custom_commands(q: queue.Queue, tool_input: dict[str, Any]):
             if block.type == "tool_use":
                 # Dispatch the tool using the tool_handler dict
                 handler = CREATE_CUSTOM_COMMAND_TOOL_HANDLERS[block.name]
-                result = handler(q, block.input)
+                result = handler(session_id, q, block.input)
 
                 tool_results.append({
                     "type": "tool_result",

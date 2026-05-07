@@ -1,4 +1,5 @@
 import queue
+import uuid
 
 from anthropic import Anthropic
 
@@ -7,6 +8,7 @@ from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
 from backend.database import clear_data
 from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
+from backend.tools.search_docs import close_mcp_server
 
 system_message = """
 You are a Java file generator with expertise in, using the if-engine Java library for creating interactive fiction games. 
@@ -24,9 +26,12 @@ def generator(q: queue.Queue):
         yield message
 
 def run_agent(q: queue.Queue, spec: str):
+    # session id used as a key for files stored in sqlite db
+    session_id: str = str(uuid.uuid4())
+
     # First call Claude API to extract map and create it deterministically. Start agentic loop after.
-    build_map(q, spec)
-    create_intro(q, spec)
+    build_map(session_id, q, spec)
+    create_intro(session_id, q, spec)
 
     messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
     client = Anthropic()
@@ -51,7 +56,7 @@ def run_agent(q: queue.Queue, spec: str):
             if block.type == "tool_use":
                 # Dispatch tool using the tool_handler dict
                 handler = TOOL_HANDLERS[block.name]
-                result = handler(q, block.input)
+                result = handler(session_id, q, block.input)
 
                 tool_results.append({
                     "type": "tool_result",
@@ -61,7 +66,11 @@ def run_agent(q: queue.Queue, spec: str):
 
         messages.append({"role": "user", "content": tool_results})
 
-    # Delete generated files before sending final result to frontend.
-    clear_data()
-
+    clean_up()
+    q.put("event:status_done\ndata:Done")
     q.put(None)
+
+def clean_up():
+    # Delete generated files once they've been sent to the frontend
+    clear_data()
+    close_mcp_server()
