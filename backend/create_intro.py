@@ -60,9 +60,9 @@ def write_files(session_id: str, should_skip_intro: bool, game_intro: str | None
         constants_buf.write('.skipIntro()')
 
     if game_intro is not None:
-        constants_buf.write(f'.gameIntro("{game_intro}")')
+        constants_buf.write(f'.withGameIntro("{game_intro}")')
 
     if intro_response.yes_answer and intro_response.no_answer:
-        constants_buf.write(f'.withIntroResponse("{intro_response.yes_answer}", "{intro_response.no_answer}")')
+        constants_buf.write(f'.withIntroResponses("{intro_response.yes_answer}", "{intro_response.no_answer}")')
 
     insert_file(session_id, 'intro-info.txt', constants_buf.getvalue(), db_name)

@@ -19,7 +19,7 @@ This would indicate location1 leads north to location2 and location2 leads south
 Note, the user may use a different format, but use your best judgement to determine what the user intends the structure to be.
 They will also provide items and indicate what locations those items are at.
 There are several fields for you to populate as described in the structured output fields for locations and items.
-Note: DO NOT try to fill in the descriptions with actual text, use placeholder text like "cave long description" or "backpack detailed description". The user will complete the full descriptions themselves.
+Note: DO NOT try to fill in the descriptions with actual text, use placeholder text like "cave long description" or "backpack detailed description". The user will complete the full descriptions themselves. DO fill in the available directions to other locations. ("cave long description. North -> Cave entrance, South -> farther in the cave."
 """
 
 def build_map(session_id: str, q: queue.Queue, spec: str):
@@ -112,18 +112,6 @@ public class Map {
   public GameMap.Builder createMap(GameMap.Builder builder) {
   return builder
 """)
-    map_buf.write("///// Add Items /////")
-    # Format: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
-    for item in items:
-        screaming_snake_case_name: str = item.name.upper().replace(" ", "_")
-        map_buf.write(f"""
-.placeItem(new Item(
-  Constants.{screaming_snake_case_name}_NAME,
-  Constants.{screaming_snake_case_name}_INVENTORY_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
-  Constants.{screaming_snake_case_name}_ALIASES),
-  Constants.{item.location.upper().replace(" ", "_")}_NAME)""")
 
     map_buf.write("\n\n///// Add Locations /////")
     # Format: .addLocation(new Location(name, long description, short description))
@@ -136,6 +124,19 @@ public class Map {
   Constants.{screaming_snake_case_name}_SHORT_DESCRIPTION))""")
         if location.is_starting_location:
             map_buf.write(f"\n  .setStartingLocation(Constants.{screaming_snake_case_name}_NAME)")
+
+    map_buf.write("///// Add Items /////")
+    # Format: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
+    for item in items:
+        screaming_snake_case_name: str = item.name.upper().replace(" ", "_")
+        map_buf.write(f"""
+.placeItem(new Item(
+  Constants.{screaming_snake_case_name}_NAME,
+  Constants.{screaming_snake_case_name}_INVENTORY_DESCRIPTION,
+  Constants.{screaming_snake_case_name}_LOCATION_DESCRIPTION,
+  Constants.{screaming_snake_case_name}_DETAILED_DESCRIPTION,
+  Constants.{screaming_snake_case_name}_ALIASES),
+  Constants.{item.location.upper().replace(" ", "_")}_NAME)""")
 
     map_buf.write("\n\n///// Connect Locations /////\n")
     # Format: .connect(source location name, direction, target location name)

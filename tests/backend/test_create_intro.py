@@ -1,7 +1,7 @@
 import pytest
 
 from backend.create_intro import write_files
-from backend.database import init_db, fetch_file
+from backend.database import init_db, fetch_file_content
 from backend.models.custom_intro_response import CustomIntroResponse
 
 EMPTY_INTRO_RESPONSE = CustomIntroResponse(yes_answer="", no_answer="")
@@ -23,7 +23,7 @@ def test_skip_intro_writes_skip_intro_call(test_db):
         db_name=test_db,
     )
 
-    content = fetch_file(session_id, "intro-info.txt", test_db)
+    content = fetch_file_content(session_id, "intro-info.txt", test_db)
 
     assert content == ".skipIntro()"
 
@@ -37,9 +37,9 @@ def test_game_intro_writes_game_intro_call(test_db):
         db_name=test_db,
     )
 
-    content = fetch_file(session_id, "intro-info.txt", test_db)
+    content = fetch_file_content(session_id, "intro-info.txt", test_db)
 
-    assert content == '.gameIntro("welcome to the cave")'
+    assert content == '.withGameIntro("welcome to the cave")'
 
 
 def test_intro_response_writes_with_intro_response_call(test_db):
@@ -56,9 +56,9 @@ def test_intro_response_writes_with_intro_response_call(test_db):
         db_name=test_db,
     )
 
-    content = fetch_file(session_id, "intro-info.txt", test_db)
+    content = fetch_file_content(session_id, "intro-info.txt", test_db)
 
-    assert content == '.withIntroResponse("you chose yes", "you chose no")'
+    assert content == '.withIntroResponses("you chose yes", "you chose no")'
 
 
 def test_no_intro_info_writes_empty_content(test_db):
@@ -70,7 +70,7 @@ def test_no_intro_info_writes_empty_content(test_db):
         db_name=test_db,
     )
 
-    content = fetch_file(session_id, "intro-info.txt", test_db)
+    content = fetch_file_content(session_id, "intro-info.txt", test_db)
 
     assert content == ""
 
@@ -84,6 +84,6 @@ def test_skip_intro_and_game_intro_combined(test_db):
         db_name=test_db,
     )
 
-    content = fetch_file(session_id, "intro-info.txt", test_db)
+    content = fetch_file_content(session_id, "intro-info.txt", test_db)
 
-    assert content == '.skipIntro().gameIntro("welcome to the cave")'
+    assert content == '.skipIntro().withGameIntro("welcome to the cave")'

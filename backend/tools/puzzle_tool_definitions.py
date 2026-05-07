@@ -53,13 +53,16 @@ CREATE_PUZZLES_AGENT_TOOLS = [
                                 "type": "string",
                                 "description": "This is the exact code that will be written to the Java file. It will either be a new file or appended to an existing file."
                             },
-                            "is_new_file": {
-                                "type": "boolean",
-                                "description": "Whether or not this a new file or not. True if it's a new file, false otherwise. "
-                                               "This is to determine if the code should be appended to an existing file or if a new file should be created."
+                            "db_operation_type": {
+                                "type": "string",
+                                "description": """You have three options: 'INSERT', 'UPDATE', or 'APPEND'. You must choose ONLY ONE of those options and NO OTHER VALUES.
+Insert means you have a new file you want to create. Update means you want to replace an existing file with a new version.
+Append means you want to add some more content on the end of an existing file.
+Append is uncommon since you would need to replace the brackets at the end of the Java file.
+Make sure if you are updating a file you know you won't break anything by accidentally deleting old functionality."""
                             }
                         },
-                        "required": ["file_name", "code", "is_new_file"]
+                        "required": ["file_name", "code", "db_operation_type"]
                     },
                 }
             },

@@ -5,7 +5,7 @@ from typing import Any
 from anthropic import Anthropic
 
 from backend.constants import CLAUDE_SONNET_MODEL
-from backend.database import fetch_file
+from backend.database import fetch_file_content
 from backend.models.custom_commands import CustomCommands
 from backend.tools.custom_command_tool_definitions import CREATE_CUSTOM_COMMANDS_AGENT_TOOLS, CREATE_CUSTOM_COMMAND_TOOL_HANDLERS
 
@@ -45,8 +45,8 @@ def create_custom_commands(session_id: str, q: queue.Queue, tool_input: dict[str
     custom_commands: CustomCommands = extract_custom_commands_from_spec(tool_input["user_spec"])
     custom_commands_json: str = json.dumps([c.model_dump() for c in custom_commands.commands])
 
-    constants_file: str = fetch_file(session_id, "Constants.java")
-    map_file: str = fetch_file(session_id, "Map.java")
+    constants_file: str = fetch_file_content(session_id, "Constants.java")
+    map_file: str = fetch_file_content(session_id, "Map.java")
     messages = [{"role": "user", "content": [{"type": "text", "text": custom_commands_json},
                                              {"type": "text", "text": constants_file},
                                              {"type": "text", "text": map_file}]}]
