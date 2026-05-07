@@ -54,7 +54,6 @@ def build_map(session_id: str, q: queue.Queue, spec: str):
     q.put("event: status_done\ndata: Map created.\n\n")
     return session_id
 
-
 def write_files(session_id: str, locations: list[Location], connections: list[Connection], items: list[Item], db_name: str = 'database.db'):
     """
 
@@ -94,6 +93,20 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
     # Create the map items and connections using the Java if-engine library's builder.
     # Write to a .txt file to pass to Claude later so it can add it to the rest of the game
     map_buf: StringIO = StringIO()
+    map_buf.write("""
+package com.example;
+
+import io.github.tmanbarton.ifengine.Direction;
+import io.github.tmanbarton.ifengine.Item;
+import io.github.tmanbarton.ifengine.Location;
+
+public class Map {
+
+  public Map() {}
+  
+  public GameMap.Builder createMap(GameMap.Builder builder) {
+  builder
+""")
     map_buf.write("///// Add Items /////")
     # Format: placeItem(new Item(name, inventory description, location description, detailed description, aliases), targetLocation)
     for item in items:
@@ -120,10 +133,13 @@ public static final String {screaming_snake_case_name}_LONG_DESCRIPTION = "{loca
             map_buf.write(f"\n  .setStartingLocation(Constants.{screaming_snake_case_name}_NAME)")
 
     map_buf.write("\n\n///// Connect Locations /////\n")
-    # Format: .connectOneWay(source location name, direction, target location name)
+    # Format: .connect(source location name, direction, target location name)
     for connection in connections:
         map_buf.write(
             f'  .connectOneWay(Constants.{connection.source_location.upper().replace(" ", "_")}_NAME, Direction.{connection.direction}, '
             f'Constants.{connection.target_location.upper().replace(" ", "_")}_NAME)\n')
 
-    insert_file(session_id, 'map.txt', map_buf.getvalue(), db_name)
+    map_buf.write("""  }
+}""")
+
+    insert_file(session_id, 'Map.java', map_buf.getvalue(), db_name)

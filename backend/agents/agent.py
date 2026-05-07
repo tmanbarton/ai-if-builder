@@ -7,6 +7,7 @@ from backend.build_map import build_map
 from backend.constants import CLAUDE_SONNET_MODEL
 from backend.create_intro import create_intro
 from backend.database import clear_data
+from backend.java_scaffolding import initialize
 from backend.tools.definitions import TOOL_DEFINITIONS, TOOL_HANDLERS
 from backend.tools.search_docs import close_mcp_server
 
@@ -29,7 +30,10 @@ def run_agent(q: queue.Queue, spec: str):
     # session id used as a key for files stored in sqlite db
     session_id: str = str(uuid.uuid4())
 
-    # First call Claude API to extract map and create it deterministically. Start agentic loop after.
+    # 1. Write build.gradle and Game.java class to db, which are the same every time
+    # 2. Call Claude API to extract map and any intro stuff if present to create those deterministically.
+    # 3. Start agentic loop
+    initialize(session_id)
     build_map(session_id, q, spec)
     create_intro(session_id, q, spec)
 
