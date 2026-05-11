@@ -37,6 +37,6 @@ def fetch_all_files(session_id: str, db_name: str = "database.db"):
         row = cursor.fetchall()
     return row if row is not None else []
 
-def clear_data(db_name: str = "database.db"):
+def clear_data(session_id: str, db_name: str = "database.db"):
     with sqlite3.connect(db_name) as conn:
-        conn.execute("DELETE FROM game_data")
+        conn.execute("DELETE FROM game_data WHERE session_id = ?", (session_id,))

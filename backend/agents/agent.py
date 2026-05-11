@@ -1,3 +1,4 @@
+import json
 import queue
 import uuid
 
@@ -28,54 +29,58 @@ def generator(q: queue.Queue):
 
 def run_agent(q: queue.Queue, spec: str):
     # session id used as a key for files stored in sqlite db
-    session_id: str = str(uuid.uuid4())
+    session_id: str = "f0bf2a47-3058-43ab-ab74-8ace9341d212"
+    # session_id: str = str(uuid.uuid4())
 
     # 1. Write build.gradle and Game.java class to db, which are the same every time
     # 2. Call Claude API to extract map and any intro stuff if present to create those deterministically.
     # 3. Start agentic loop
-    initialize(session_id)
-    build_map(session_id, q, spec)
-    create_intro(session_id, q, spec)
+    # initialize(session_id)
+    # build_map(session_id, q, spec)
+    # create_intro(session_id, q, spec)
 
     messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
     client = Anthropic()
-    while True:
-        response = client.messages.create(
-            model=CLAUDE_SONNET_MODEL,
-            system=system_message,
-            messages=messages,
-            tools=TOOL_DEFINITIONS,
-            max_tokens=16000
-        )
+    # while True:
+    #     response = client.messages.create(
+    #         model=CLAUDE_SONNET_MODEL,
+    #         system=system_message,
+    #         messages=messages,
+    #         tools=TOOL_DEFINITIONS,
+    #         max_tokens=16000
+    #     )
+    #
+    #     messages.append({"role": "assistant", "content": response.content})
+    #
+    #     # If Claude didn't say to use a tool, it's done
+    #     if response.stop_reason != "tool_use":
+    #         break
+    #
+    #     # Otherwise find and execute each specified tool
+    #     tool_results: list[dict] = []
+    #     for block in response.content:
+    #         if block.type == "tool_use":
+    #             # Dispatch tool using the tool_handler dict
+    #             handler = TOOL_HANDLERS[block.name]
+    #             result = handler(session_id, q, block.input)
+    #
+    #             tool_results.append({
+    #                 "type": "tool_result",
+    #                 "tool_use_id": block.id,
+    #                 "content": result
+    #             })
+    #
+    #     messages.append({"role": "user", "content": tool_results})
 
-        messages.append({"role": "assistant", "content": response.content})
+    files = fetch_all_files(session_id)
+    for file in files:
+        q.put(f"event: file\ndata: {json.dumps({'name': file[0], 'content': file[1]})}\n\n")
 
-        # If Claude didn't say to use a tool, it's done
-        if response.stop_reason != "tool_use":
-            break
-
-        # Otherwise find and execute each specified tool
-        tool_results: list[dict] = []
-        for block in response.content:
-            if block.type == "tool_use":
-                # Dispatch tool using the tool_handler dict
-                handler = TOOL_HANDLERS[block.name]
-                result = handler(session_id, q, block.input)
-
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result
-                })
-
-        messages.append({"role": "user", "content": tool_results})
-
-    data = fetch_all_files(session_id)
-    clean_up()
-    q.put("event:status_done\ndata:Done")
+    # clean_up(session_id)
+    q.put("event:status_done\ndata:Done\n\n")
     q.put(None)
 
-def clean_up():
+def clean_up(session_id: str):
     # Delete generated files once they've been sent to the frontend
-    clear_data()
+    clear_data(session_id)
     close_mcp_server()

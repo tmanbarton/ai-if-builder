@@ -62,7 +62,7 @@ A spec describes the game's locations, map connections, items, commands, and puz
 
 ```
 backend/
-  endpoint.py          # FastAPI server with /api/generate_files endpoint
+  endpoint.py          # FastAPI server with /api/generate_code endpoint
   agent.py             # Orchestrates the agentic workflow
   build_map.py         # Extracts map JSON via Claude and generates Java code
   verify_puzzles.py    # Puzzle verification (in progress)

@@ -22,7 +22,7 @@ generateBtn.addEventListener("click", async () => {
     generateBtn.disabled = true;
 
     try {
-        const response = await fetch("/api/generate_files", {
+        const response = await fetch("/api/generate_code", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "game_spec": gameSpec }),

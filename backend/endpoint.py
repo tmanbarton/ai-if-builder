@@ -16,8 +16,8 @@ init_db()
 class Request(BaseModel):
     game_spec: str
 
-@app.post("/api/generate_files")
-def generate_files(request: Request):
+@app.post("/api/generate_code")
+def generate_code(request: Request):
     q = Queue()
     thread = threading.Thread(target=run_agent, args=(q, request.game_spec))
     thread.start()
