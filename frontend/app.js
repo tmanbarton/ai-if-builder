@@ -6,6 +6,7 @@ const filesPanel = document.getElementById("files-panel");
 const fileTabs = document.getElementById("file-tabs");
 const fileContent = document.getElementById("file-content");
 
+let sessionId = null;
 let generatedFiles = {};
 
 generateBtn.addEventListener("click", async () => {
@@ -90,7 +91,9 @@ function handleSSEEvent(raw) {
         showFiles();
     } else if (eventType === "error") {
         addStatus(`Error: ${data}`);
-    }
+    } else if (eventType === "session" {
+        sessionId = data;
+    })
 }
 
 function addStatus(message, className) {

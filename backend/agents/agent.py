@@ -1,6 +1,7 @@
 import json
 import queue
 import uuid
+from threading import Timer
 
 from anthropic import Anthropic
 
@@ -76,9 +77,14 @@ def run_agent(q: queue.Queue, spec: str):
     for file in files:
         q.put(f"event: file\ndata: {json.dumps({'name': file[0], 'content': file[1]})}\n\n")
 
-    # clean_up(session_id)
+    # Send the session id as a different even type so the front end can use the session id for downloading the files
+    q.put(f"event:session\ndata:{session_id}\n\n")
     q.put("event:status_done\ndata:Done\n\n")
     q.put(None)
+
+    # Clean up after 15 minutes if the user doesn't download the files.
+    # Delete files immediately if they do download.
+    Timer(900, clean_up, args=[session_id]).start()
 
 def clean_up(session_id: str):
     # Delete generated files once they've been sent to the frontend
