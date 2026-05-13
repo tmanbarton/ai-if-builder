@@ -124,6 +124,31 @@ button#generate-btn:disabled {
     color: #4a7c59;
 }
 
+/* Files header */
+
+.files-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+button#download-btn {
+    padding: 0.4rem 1rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: transparent;
+    color: #4a7c59;
+    border: 1px solid #4a7c59;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button#download-btn:hover {
+    background: #4a7c59;
+    color: #fff;
+}
+
 /* File tabs and content */
 
 #file-tabs {

@@ -2,6 +2,7 @@ import json
 import queue
 import uuid
 from threading import Timer
+from typing import Any
 
 from anthropic import Anthropic
 
@@ -30,7 +31,7 @@ def generator(q: queue.Queue):
 
 def run_agent(q: queue.Queue, spec: str):
     # session id used as a key for files stored in sqlite db
-    session_id: str = "f0bf2a47-3058-43ab-ab74-8ace9341d212"
+    session_id: str = "a9175fc0-c0fc-4a83-9607-00804b821dcb"
     # session_id: str = str(uuid.uuid4())
 
     # 1. Write build.gradle and Game.java class to db, which are the same every time
@@ -39,9 +40,9 @@ def run_agent(q: queue.Queue, spec: str):
     # initialize(session_id)
     # build_map(session_id, q, spec)
     # create_intro(session_id, q, spec)
-
-    messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
-    client = Anthropic()
+    #
+    # messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
+    # client = Anthropic()
     # while True:
     #     response = client.messages.create(
     #         model=CLAUDE_SONNET_MODEL,
@@ -73,13 +74,13 @@ def run_agent(q: queue.Queue, spec: str):
     #
     #     messages.append({"role": "user", "content": tool_results})
 
-    files = fetch_all_files(session_id)
+    files: list[Any] = fetch_all_files(session_id)
     for file in files:
         q.put(f"event: file\ndata: {json.dumps({'name': file[0], 'content': file[1]})}\n\n")
 
     # Send the session id as a different even type so the front end can use the session id for downloading the files
-    q.put(f"event:session\ndata:{session_id}\n\n")
-    q.put("event:status_done\ndata:Done\n\n")
+    q.put(f"event: session\ndata: {session_id}\n\n")
+    q.put("event: status_done\ndata: Done\n\n")
     q.put(None)
 
     # Clean up after 15 minutes if the user doesn't download the files.

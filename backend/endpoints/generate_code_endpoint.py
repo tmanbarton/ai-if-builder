@@ -1,16 +1,19 @@
 import os
 import threading
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from queue import Queue
+from backend.endpoints.download_zip_endpoint import download_zip_router
 
 from backend.agents.agent import run_agent, generator
 from backend.database import init_db
 
 app = FastAPI()
+app.include_router(download_zip_router)
+
 init_db()
 
 class Request(BaseModel):
@@ -23,9 +26,9 @@ def generate_code(request: Request):
     thread.start()
     return StreamingResponse(generator(q), media_type="text/event-stream")
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 app.mount("/", StaticFiles(directory=os.path.join(BASE_DIR, "frontend"), html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("endpoint:app", reload=True)
+    uvicorn.run("backend.endpoints.generate_code_endpoint:app", reload=True)

@@ -5,9 +5,16 @@ const statusLog = document.getElementById("status-log");
 const filesPanel = document.getElementById("files-panel");
 const fileTabs = document.getElementById("file-tabs");
 const fileContent = document.getElementById("file-content");
+const downloadBtn = document.getElementById("download-btn");
 
 let sessionId = null;
 let generatedFiles = {};
+
+downloadBtn.addEventListener("click", () => {
+    if (sessionId) {
+        window.location.href = `/api/download_zip/${sessionId}`;
+    }
+});
 
 generateBtn.addEventListener("click", async () => {
     const gameSpec = gameSpecEl.value.trim();
@@ -15,10 +22,12 @@ generateBtn.addEventListener("click", async () => {
 
     // Reset UI
     generatedFiles = {};
+    sessionId = null;
     statusLog.innerHTML = "";
     fileTabs.innerHTML = "";
     fileContent.textContent = "";
     filesPanel.classList.add("hidden");
+    downloadBtn.classList.add("hidden");
     statusPanel.classList.remove("hidden");
     generateBtn.disabled = true;
 
@@ -59,6 +68,9 @@ generateBtn.addEventListener("click", async () => {
         }
 
         addStatus("Done.");
+        if (sessionId) {
+            downloadBtn.classList.remove("hidden");
+        }
     } catch (err) {
         addStatus(`Error: ${err.message}`);
     } finally {
@@ -91,9 +103,9 @@ function handleSSEEvent(raw) {
         showFiles();
     } else if (eventType === "error") {
         addStatus(`Error: ${data}`);
-    } else if (eventType === "session" {
+    } else if (eventType === "session") {
         sessionId = data;
-    })
+    }
 }
 
 function addStatus(message, className) {
