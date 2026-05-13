@@ -17,8 +17,10 @@ def download_zip(session_id: str):
         for file_name, content in files:
             if file_name == "build.gradle":
                 zip_file.writestr("game/build.gradle", content)
+            elif file_name.endswith(".java"):
+                zip_file.writestr(f"backend/game/src/main/java/com/example/{file_name}", content)
             else:
-                zip_file.writestr(f"game/src/main/java/com/example/{file_name}", content)
+                zip_file.writestr(f"frontend/{file_name}", content)
 
     buf.seek(0)
 

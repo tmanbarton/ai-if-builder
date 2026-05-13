@@ -27,6 +27,7 @@ def create_intro(session_id: str, q: queue.Queue, spec: str):
     - Should the intro be skipped
     - The specific response for when the user answers yes or no to the initial question
     - The actual game intro
+    :param session_id:
     :param q: Queue for sending SSE events to the front end. Automatically sends the message when an element is added
     :param spec: Game spec that the user submitted to send to Claude.
     """
@@ -55,14 +56,26 @@ def create_intro(session_id: str, q: queue.Queue, spec: str):
 
 def write_files(session_id: str, should_skip_intro: bool, game_intro: str | None, intro_response: CustomIntroResponse, db_name: str = 'database.db'):
 
-    constants_buf: StringIO = StringIO()
+    buf: StringIO = StringIO()
+    buf.write("""package com.example;
+
+import io.github.tmanbarton.ifengine.game.GameMap;
+
+public class Intro {
+  final GameMap gameMap;
+    
+  public Map() {}
+  
+  public GameMap.Builder createIntro(GameMap.Builder builder) {
+  return builder
+""")
     if should_skip_intro:
-        constants_buf.write('.skipIntro()')
+        buf.write('.skipIntro()')
 
     if game_intro is not None:
-        constants_buf.write(f'.withGameIntro("{game_intro}")')
+        buf.write(f'.withGameIntro("{game_intro}")')
 
     if intro_response.yes_answer and intro_response.no_answer:
-        constants_buf.write(f'.withIntroResponses("{intro_response.yes_answer}", "{intro_response.no_answer}")')
+        buf.write(f'.withIntroResponses("{intro_response.yes_answer}", "{intro_response.no_answer}")')
 
-    insert_file(session_id, 'intro-info.txt', constants_buf.getvalue(), db_name)
+    insert_file(session_id, 'Intro.java', buf.getvalue(), db_name)
