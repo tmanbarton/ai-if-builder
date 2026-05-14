@@ -31,48 +31,48 @@ def generator(q: queue.Queue):
 
 def run_agent(q: queue.Queue, spec: str):
     # session id used as a key for files stored in sqlite db
-    session_id: str = "a9175fc0-c0fc-4a83-9607-00804b821dcb"
-    # session_id: str = str(uuid.uuid4())
+    # session_id: str = "a9175fc0-c0fc-4a83-9607-00804b821dcb"
+    session_id: str = str(uuid.uuid4())
 
     # 1. Write build.gradle and Game.java class to db, which are the same every time
     # 2. Call Claude API to extract map and any intro stuff if present to create those deterministically.
     # 3. Start agentic loop
-    # initialize(session_id)
-    # build_map(session_id, q, spec)
-    # create_intro(session_id, q, spec)
-    #
-    # messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
-    # client = Anthropic()
-    # while True:
-    #     response = client.messages.create(
-    #         model=CLAUDE_SONNET_MODEL,
-    #         system=system_message,
-    #         messages=messages,
-    #         tools=TOOL_DEFINITIONS,
-    #         max_tokens=16000
-    #     )
-    #
-    #     messages.append({"role": "assistant", "content": response.content})
-    #
-    #     # If Claude didn't say to use a tool, it's done
-    #     if response.stop_reason != "tool_use":
-    #         break
-    #
-    #     # Otherwise find and execute each specified tool
-    #     tool_results: list[dict] = []
-    #     for block in response.content:
-    #         if block.type == "tool_use":
-    #             # Dispatch tool using the tool_handler dict
-    #             handler = TOOL_HANDLERS[block.name]
-    #             result = handler(session_id, q, block.input)
-    #
-    #             tool_results.append({
-    #                 "type": "tool_result",
-    #                 "tool_use_id": block.id,
-    #                 "content": result
-    #             })
-    #
-    #     messages.append({"role": "user", "content": tool_results})
+    initialize(session_id)
+    build_map(session_id, q, spec)
+    create_intro(session_id, q, spec)
+
+    messages = [{"role": "user", "content": [{"type": "text", "text": spec}]}]
+    client = Anthropic()
+    while True:
+        response = client.messages.create(
+            model=CLAUDE_SONNET_MODEL,
+            system=system_message,
+            messages=messages,
+            tools=TOOL_DEFINITIONS,
+            max_tokens=16000
+        )
+
+        messages.append({"role": "assistant", "content": response.content})
+
+        # If Claude didn't say to use a tool, it's done
+        if response.stop_reason != "tool_use":
+            break
+
+        # Otherwise find and execute each specified tool
+        tool_results: list[dict] = []
+        for block in response.content:
+            if block.type == "tool_use":
+                # Dispatch tool using the tool_handler dict
+                handler = TOOL_HANDLERS[block.name]
+                result = handler(session_id, q, block.input)
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result
+                })
+
+        messages.append({"role": "user", "content": tool_results})
 
     files: list[Any] = fetch_all_files(session_id)
     for file in files:

@@ -4,13 +4,15 @@ from backend.database import insert_file
 
 def initialize(session_id: str):
     write_gradle_build(session_id)
+    write_settings_gradle(session_id)
     write_game_class(session_id)
     write_app_class(session_id)
     write_web_socket_class(session_id)
     write_html(session_id)
-    write_css()
+    write_css(session_id)
     write_game_client_js(session_id)
     write_terminal_js(session_id)
+    write_build_scripts(session_id)
 
 def write_gradle_build(session_id: str):
     buf: StringIO = StringIO()
@@ -53,6 +55,13 @@ jar {
 }
 """)
     insert_file(session_id, "build.gradle", buf.getvalue())
+
+def write_settings_gradle(session_id: str):
+    buf: StringIO = StringIO()
+    buf.write("""
+rootProject.name = 'test-game'
+""")
+    insert_file(session_id, "settings.gradle", buf.getvalue())
 
 def write_game_class(session_id: str):
     buf: StringIO = StringIO()
@@ -377,3 +386,25 @@ def write_terminal_js(session_id: str):
 
     insert_file(session_id, "terminal.js", buf.getvalue())
 
+def write_build_scripts(session_id: str):
+    bash_buf: StringIO = StringIO()
+    bash_buf.write("""
+    #!/usr/bin/env bash
+set -e
+
+# Initialize Gradle wrapper if not present
+if [ ! -f "gradlew" ]; then
+  gradle wrapper
+fi
+
+# Build and run
+./gradlew run""")
+    insert_file(session_id, "run.sh", bash_buf.getvalue())
+
+    bat_buf: StringIO = StringIO()
+    bat_buf.write("""@echo off
+if not exist gradlew.bat (
+    gradle wrapper
+)
+gradlew.bat run""")
+    insert_file(session_id, "run.bat", bat_buf.getvalue())
