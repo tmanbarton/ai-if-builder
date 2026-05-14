@@ -59,7 +59,7 @@ jar {
 def write_settings_gradle(session_id: str):
     buf: StringIO = StringIO()
     buf.write("""
-rootProject.name = 'test-game'
+rootProject.name = 'game'
 """)
     insert_file(session_id, "settings.gradle", buf.getvalue())
 

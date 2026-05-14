@@ -62,12 +62,8 @@ def write_files(session_id: str, should_skip_intro: bool, game_intro: str | None
 import io.github.tmanbarton.ifengine.game.GameMap;
 
 public class Intro {
-  final GameMap gameMap;
-    
-  public Map() {}
-  
   public GameMap.Builder createIntro(GameMap.Builder builder) {
-  return builder
+    return builder
 """)
     if should_skip_intro:
         buf.write('.skipIntro()')
@@ -78,4 +74,5 @@ public class Intro {
     if intro_response.yes_answer and intro_response.no_answer:
         buf.write(f'.withIntroResponses("{intro_response.yes_answer}", "{intro_response.no_answer}")')
 
+    buf.write(";\n  }\n}")
     insert_file(session_id, 'Intro.java', buf.getvalue(), db_name)
