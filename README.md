@@ -6,16 +6,19 @@ A web application that takes a game design spec for an interactive fiction game 
 
 - **Spec-driven game generation** — describe your game's map, items, puzzles, and commands in plain text, and the system produces Java files
 - **Agentic workflow** — Claude-powered agents extract the game map, define puzzles, write custom commands, and verify correctness
-- **RAG-based documentation lookup** — agents can query embedded if-engine docs to write correct library usage (planned)
+- **RAG-based documentation lookup** — agents can query embedded if-engine docs via an MCP server to write correct library usage
 - **Live status streaming** — SSE-based progress updates show agent status in the browser as files are generated
+- **Zip download** — download all generated files as a ready-to-build Gradle project
 
 ## How It Works
 
 1. User submits a game spec through the web UI
-2. The backend calls the Claude API to extract the map (locations, connections, items) into structured JSON
-3. Java constants and map-builder code are generated deterministically from the JSON
-4. An agentic loop extracts puzzles, writes custom command Java files, and verifies them against the user's spec and the [if-engine](https://github.com/tmanbarton/if-engine) Java library.
-5. Generated Java files are returned to the frontend
+2. The backend generates scaffolding files (build.gradle, App.java, Game.java, GameWebSocketServer.java)
+3. The Claude API extracts the map (locations, connections, items) into structured JSON
+4. Java constants and map-builder code are generated deterministically from the JSON
+5. Sub-agents handle puzzles and custom commands via tool use
+6. Generated files are streamed to the frontend and stored in SQLite for download
+7. User clicks **Download .zip** to get a complete Gradle project
 
 ## Installation
 
@@ -42,52 +45,59 @@ export ANTHROPIC_API_KEY="your-key-here"
 Start the server:
 
 ```bash
-uvicorn backend.endpoint:app --reload
+uvicorn backend.endpoints.generate_code_endpoint:app --reload
 ```
 
-Open `http://localhost:8000` in your browser. Paste a game spec into the text area and click **Generate**. Agent status updates will stream in, and generated Java files will appear when complete.
+Open `http://localhost:8000` in your browser. Paste a game spec into the text area and click **Generate**. Agent status updates will stream in, and generated Java files will appear when complete. Click **Download .zip** to get the full Gradle project.
 
-### Game Spec Format
+### Game Spec
 
-A spec describes the game's locations, map connections, items, commands, and puzzles. See `examples/example1.md` for a full example. Key sections:
-
-- **Locations** — list of named locations
-- **Map** — directional connections between locations (e.g. `entrance, north -> kitchen`)
-- **Items** — items and their starting locations
-- **Custom commands** — new commands the player can use (e.g. `push`)
-- **Commands to override** — existing commands with custom behavior (e.g. `take`, `eat`)
-- **Puzzles** — multi-step puzzles with success criteria and game state changes
+A spec describes your game's map, items, commands (if any), and puzzles (if any). See `examples/example1.md` for an example.
 
 ## Project Structure
 
 ```
 backend/
-  endpoint.py          # FastAPI server with /api/generate_code endpoint
-  agent.py             # Orchestrates the agentic workflow
-  build_map.py         # Extracts map JSON via Claude and generates Java code
-  verify_puzzles.py    # Puzzle verification (in progress)
-  models/              # Pydantic models for game data (Map, Location, Item, Puzzle, etc.)
+  endpoints/
+    generate_code_endpoint.py  # FastAPI app, POST /api/generate_code
+    download_zip_endpoint.py   # GET /api/download_zip/{session_id}
+  agents/
+    agent.py                   # Main agentic loop orchestrator
+    create_puzzles_agent.py    # Puzzle creation sub-agent
+    create_custom_commands_agent.py  # Custom command sub-agent
+  models/                      # Pydantic models (Map, Location, Item, Puzzle, etc.)
   tools/
-    definitions.py     # Tool schemas for the Claude agentic loop
-    define_puzzles.py  # Puzzle extraction tool
-    write_commands.py  # Java command file generation tool
-    search_docs.py      # RAG-based if-engine doc lookup (planned)
+    definitions.py             # Tool schemas and handler registry
+    write_puzzles.py           # Puzzle file generation tool
+    write_custom_commands.py   # Custom command file generation tool
+    search_docs.py             # RAG-based if-engine doc lookup
+    embedding/                 # Embedding utilities for doc search
+  mcp_server/
+    search_docs_server.py      # MCP server for documentation queries
+  build_map.py                 # Extracts map JSON via Claude, generates Java code
+  create_intro.py              # Intro/opening sequence generation
+  game_scaffolding.py          # Boilerplate Java and frontend files
+  database.py                  # SQLite operations for generated file storage
+  db_helpers.py                # Insert/upsert/append helpers
+  verify_puzzles.py            # Puzzle verification logic
 frontend/
-  index.html           # Web UI
-  app.js               # Client-side JS for SSE streaming and file display
-  styles.css           # Styling
+  index.html                   # Web UI
+  app.js                       # SSE streaming, file display, download button
+  styles.css                   # Styling
 examples/
-  example1.md          # Sample game spec ("A Lot at Steak")
-  example2.md          # Additional sample spec
+  example1.md                  # Sample game spec ("A Lot at Steak")
+  example2.md                  # Additional sample spec
 tests/
   backend/
-    test_build_map.py  # Tests for map building and file generation
-    test_agent.py      # Tests for the agent workflow
+    test_build_map.py          # Map building and file generation tests
+    test_agent.py              # Agent workflow tests
+    test_database.py           # Database operation tests
+    test_create_intro.py       # Intro creation tests
 ```
 
 ## Tech Stack
 
-- **Backend:** Python, FastAPI, Uvicorn
+- **Backend:** Python, FastAPI, Uvicorn, SQLite
 - **AI:** Anthropic Claude API (structured output + tool use)
 - **Frontend:** Vanilla HTML/CSS/JS
 - **Testing:** pytest

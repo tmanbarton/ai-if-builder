@@ -160,14 +160,14 @@ def write_html(session_id: str):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Fiction Builder</title>
-    <link rel="stylesheet" href="terminal.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="terminal-container">
         <div id="terminal">
             <div id="terminal-output-container">
                 <div id="terminal-output" class="terminal-output">
-                    <p class="welcome-message">Welcome! Type 'help' for a list of commands.</p>
+                    <p class="welcome-message">Have you played before?</p>
                     <div class="input-line">
                         <span class="prompt">&gt;</span>
                         <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false">
@@ -373,7 +373,7 @@ def write_terminal_js(session_id: str):
 
     function addOutput(text, className = 'output-line') {
         const inputLine = output.querySelector('.input-line');
-        text.split('\n').forEach(part => {
+        text.split('\\n').forEach(part => {
             const line = document.createElement('div');
             line.className = className;
             line.textContent = part;

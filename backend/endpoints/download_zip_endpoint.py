@@ -15,7 +15,7 @@ def download_zip(session_id: str):
     with zipfile.ZipFile(buf, "w") as zip_file:
         files: list[Any] = fetch_all_files(session_id)
         for file_name, content in files:
-            if file_name == "build.gradle" or file_name == "settings.gradle":
+            if file_name == "build.gradle" or file_name == "settings.gradle" or file_name.startswith("run."):
                 zip_file.writestr(f"game/backend/{file_name}", content)
             elif file_name.endswith(".java"):
                 zip_file.writestr(f"game/backend/src/main/java/com/example/{file_name}", content)
